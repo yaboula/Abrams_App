@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRAMS RP — ROLEPLAY DE ÚLTIMA GENERACIÓN | FiveM</title>
+  <meta name="description" content="ABRAMS RP es el servidor de Roleplay más inmersivo de FiveM. Únete a nuestra comunidad y empieza tu historia en Los Santos." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="i18n.js"></script>
+    <!-- GSAP for smooth animations -->
+</head>
+<body>
+
+  <!-- ========== HUD (Fixed Overlay) ========== -->
+  <div id="hud">
+    <!-- UI OVERLAY (HUD) -->
+    
+    <!-- Top Left: Server Status (Tech Monitor) -->
+    <div class="hud hud-server-status tech-monitor">
+      <div class="status-indicator-ring">
+        <div class="status-indicator-core"></div>
+      </div>
+      <div class="status-labels">
+        <div class="status-heading" data-i18n="hud.server">SERVIDORES ONLINE</div>
+        <div class="player-count">
+          <span id="hud-players">500</span> 
+          <span class="dim" data-i18n="hud.players">JUGADORES</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Right: GPS Coordinates (Target Bracket) -->
+    <div class="hud hud-coords target-bracket">
+      <div class="coord-block">
+        <span class="coord-label">X_</span>
+        <span class="coord-value" id="hud-x">----</span>
+      </div>
+      <div class="coord-block">
+        <span class="coord-label">Y_</span>
+        <span class="coord-value" id="hud-y">----</span>
+      </div>
+    </div>
+
+    <!-- Top Right: Language Switcher -->
+    <div class="hud lang-switcher">
+      <button class="lang-btn active" data-lang="es">ESP</button>
+      <button class="lang-btn" data-lang="en">ENG</button>
+      <button class="lang-btn" data-lang="fr">FRA</button>
+    </div>
+
+    <!-- Top Center: Fixed Whitelist CTA -->
+    <a href="#sec-join" class="hud hud-main-cta btn-cyber" id="hud-cta">
+      <span data-i18n="hud.btn.whitelist">HACER LA WHITELIST</span>
+    </a>
+
+    <!-- Right: Section Navigation (Tech Data Lines) -->
+    <div class="hud hud-nav">
+      <div class="nav-dot active" data-section="0"></div>
+      <div class="nav-dot" data-section="1"></div>
+      <div class="nav-dot" data-section="2"></div>
+      <div class="nav-dot" data-section="3"></div>
+      <div class="nav-dot" data-section="4"></div>
+    </div>
+
+    <!-- Section Label -->
+    <div class="hud-section-label" id="hud-section-label">
+      <span class="label-number">01</span> BIENVENIDA
+    </div>
+
+    <!-- Scroll Hint -->
+    <div class="hud-scroll-hint" id="hud-scroll-hint">
+      <span>SCROLL PARA EXPLORAR</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </div>
+
+  <!-- ========== WORLD CONTAINER ========== -->
+  <div id="world-wrapper">
+    <div id="world">
+      <!-- Map Background -->
+      <div id="map-bg"></div>
+      <div id="map-overlay"></div>
+
+      <!-- GPS Route SVG -->
+      <svg id="gps-route" viewBox="0 0 2000 3500" preserveAspectRatio="none">
+        <path class="route-line-bg" id="route-bg" d="" />
+        <path class="route-line" id="route-line" d="" />
+      </svg>
+
+      <!-- ===== POINT 1 — WELCOME (Center) ===== -->
+      <section class="section" id="sec-welcome">
+        <div class="section-inner">
+          <div class="section-tag" data-i18n="sec1.tag">FIVEM ROLEPLAY</div>
+          <h1 class="heading-xl mb-16" data-i18n="sec1.title">
+            DONDE TU<br />
+            <span class="text-accent">HISTORIA</span><br />
+            COMIENZA
+          </h1>
+          <div class="accent-line accent-line-long"></div>
+          <p class="body-text mb-32 hero-desc" data-i18n="sec1.desc">
+            El servidor de roleplay más inmersivo y exigente de habla hispana.
+            Sumérgete en una ciudad viva con una economía real, facciones activas
+            y una comunidad que respira roleplay las 24 horas.
+          </p>
+          <div class="hero-actions" style="margin-top: 24px;">
+            <a href="#sec-join" class="btn-cyber btn-cyber-outline" id="btn-discord-hero">
+              VISITAR DISCORD
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== POINT 2 — PHILOSOPHY (Paleto Bay / Top) ===== -->
+      <section class="section" id="sec-values">
+        <div class="section-inner">
+          <div class="section-tag" data-i18n="sec2.tag">NUESTRA FILOSOFÍA</div>
+          <h2 class="heading-lg mb-8" data-i18n="sec2.title">CÓDIGO DE HONOR</h2>
+          <div class="accent-line"></div>
+
+          <div class="card-grid card-grid-3 mt-24">
+            <!-- Card 1 -->
+            <div class="val-card card">
+              <div class="val-label" data-i18n="sec2.card1.label">LAS REGLAS DEL JUEGO</div>
+              <div class="val-title" data-i18n="sec2.card1.title">CERO<br/>TOLERANCIA</div>
+              <div class="val-desc" data-i18n="sec2.card1.desc">
+                Roleplay serio y estricto. La toxicidad se queda fuera de Los Santos. Entra para jugar tu personaje al máximo.
+              </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="val-card card">
+              <div class="val-label" data-i18n="sec2.card2.label">SISTEMA ECONÓMICO</div>
+              <div class="val-title" data-i18n="sec2.card2.title">ECONOMÍA<br/>REAL</div>
+              <div class="val-desc" data-i18n="sec2.card2.desc">
+                Sistema económico hiperrealista. Cada peso cuenta, cada decisión tiene consecuencias. Nada se regala.
+              </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="val-card card">
+              <div class="val-label" data-i18n="sec2.card3.label">EN VIVO Y DIRECTO</div>
+              <div class="val-title" data-i18n="sec2.card3.title">COMUNIDAD<br/>DE ÉLITE</div>
+              <div class="val-desc" data-i18n="sec2.card3.desc">
+                +500 jugadores activos que viven y respiran roleplay. Una comunidad unida, competitiva y sin drama innecesario.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== POINT 3 — STREAMERS (Vinewood / Center) ===== -->
+      <section class="section" id="sec-streamers">
+        <div class="section-inner">
+          <div class="section-tag" data-i18n="sec3.tag">EN DIRECTO</div>
+          <h2 class="heading-lg mb-8" data-i18n="sec3.title">NUESTROS STREAMERS</h2>
+          <p class="body-text mb-32" data-i18n="sec3.desc">Los creadores de contenido que dan vida al servidor cada día.</p>
+          <div class="accent-line"></div>
+
+          <div class="card-grid card-grid-4 mt-24">
+            <!-- Streamer 1 -->
+            <div class="agent-card card">
+              <div class="hover-fill"></div>
+              <div class="agent-avatar">RX</div>
+              <div class="agent-live" data-i18n="sec3.live"><span class="dot"></span> EN VIVO</div>
+              <div class="agent-name">RAXETV</div>
+              <div class="agent-status">2.4K</div>
+            </div>
+            <!-- Streamer 2 -->
+            <div class="agent-card card">
+              <div class="hover-fill"></div>
+              <div class="agent-avatar">LK</div>
+              <div class="agent-live" data-i18n="sec3.live"><span class="dot"></span> EN VIVO</div>
+              <div class="agent-name">LUKA.ST</div>
+              <div class="agent-status">1.8K</div>
+            </div>
+            <!-- Streamer 3 -->
+            <div class="agent-card card" style="opacity: 0.8;">
+              <div class="hover-fill" style="background: rgba(255,255,255,0.1);"></div>
+              <div class="agent-avatar" style="border-style: dashed;">NV</div>
+              <div class="agent-name" style="margin-top: 12px;">NOVAPLAY</div>
+              <div class="agent-status" data-i18n="sec3.offline">OFFLINE</div>
+            </div>
+            <!-- Streamer 4 -->
+            <div class="agent-card card">
+              <div class="hover-fill"></div>
+              <div class="agent-avatar">ZR</div>
+              <div class="agent-live" data-i18n="sec3.live"><span class="dot"></span> EN VIVO</div>
+              <div class="agent-name">ZEROLZ</div>
+              <div class="agent-status">3.1K</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== POINT 4 — STAFF (Mission Row / Lower-center) ===== -->
+      <section class="section" id="sec-staff">
+        <div class="section-inner">
+          <div class="section-tag" data-i18n="sec4.tag">EL COMANDO</div>
+          <h2 class="heading-lg mb-8" data-i18n="sec4.title">NUESTRO STAFF</h2>
+          <p class="body-text mb-32" data-i18n="sec4.desc">El equipo que mantiene el orden y la calidad del servidor.</p>
+          <div class="accent-line"></div>
+
+          <div class="card-grid card-grid-4 mt-24">
+            <!-- Staff 1 -->
+            <div class="id-card card">
+              <div class="id-avatar">DK</div>
+              <div class="id-name">DARKSIDE</div>
+              <div class="id-role" data-i18n="sec4.role.founder">FUNDADOR</div>
+            </div>
+            <!-- Staff 2 -->
+            <div class="id-card card">
+              <div class="id-avatar">MX</div>
+              <div class="id-name">MAXPOWER</div>
+              <div class="id-role" data-i18n="sec4.role.admin">ADMINISTRADOR</div>
+            </div>
+            <!-- Staff 3 -->
+            <div class="id-card card">
+              <div class="id-avatar">VR</div>
+              <div class="id-name">VORTEX</div>
+              <div class="id-role" data-i18n="sec4.role.support">SOPORTE TÉCNICO</div>
+            </div>
+            <!-- Staff 4 -->
+            <div class="id-card card">
+              <div class="id-avatar">SN</div>
+              <div class="id-name">SENTINEL</div>
+              <div class="id-role" data-i18n="sec4.role.mod">MODERADOR</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== POINT 5 — JOIN (LSIA / Bottom) ===== -->
+      <section class="section" id="sec-join">
+        <div class="section-inner join-section">
+          <div class="section-tag" style="justify-content: center;" data-i18n="sec5.tag">VISADO DE ENTRADA</div>
+          <h2 class="heading-xl" data-i18n="sec5.title">
+            INICIA TU<br /><span class="text-accent">VISADO</span>
+          </h2>
+          <div class="accent-line accent-line-long" style="margin: 16px auto;"></div>
+          <p class="body-text" data-i18n="sec5.desc">
+            Tu historia está a un clic de distancia. Únete al Discord,
+            completa tu solicitud y prepárate para la experiencia de roleplay
+            definitiva.
+          </p>
+
+          <a href="#" class="btn-cyber btn-discord mb-24" id="btn-discord">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.838-9.674-3.5485-13.6604a.061.061 0 00-.0312-.0286z"/></svg>
+            <span data-i18n="sec5.btn.join">UNIRSE AL DISCORD</span>
+          </a>
+
+          <div class="social-row">
+            <a href="#" class="btn-social">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              TWITTER / X
+            </a>
+            <a href="#" class="btn-social">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              INSTAGRAM
+            </a>
+            <a href="#" class="btn-social">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              YOUTUBE
+            </a>
+            <a href="#" class="btn-social">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2L3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2m-1.43 9.29l-2.85 2.85h-2.86l-2.5 2.5v-2.5H7.71V3.43h11.43z"/></svg>
+              TWITCH
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /world -->
+  </div><!-- /world-wrapper -->
+
+  <!-- Scroll Spacer -->
+  <div id="scroll-spacer"></div>
+
+  <!-- GSAP + ScrollTrigger + ScrollTo from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script src="./config.js"></script>
+  <script src="./main.js"></script>
+</body>
+</html>
