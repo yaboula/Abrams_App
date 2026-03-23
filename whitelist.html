@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABRAMS RP - Digital Visa Kiosk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/whitelist.css">
+</head>
+<body>
+    <!-- Background Blur Map -->
+    <div class="kiosk-bg"></div>
+    <div class="kiosk-overlay"></div>
+    <div class="kiosk-particles"></div>
+
+    <main class="kiosk-container kiosk-glass">
+        <!-- Decoration lines inside container -->
+        <div class="kiosk-frame-top"></div>
+        <div class="kiosk-frame-bottom"></div>
+
+        <div class="kiosk-panel">
+            
+            <!-- LEFT: Wizard Section -->
+            <section class="wizard-section">
+                <header class="wizard-header">
+                    <div class="header-badge">
+                        <span class="dot"></span> TERMINAL D'ENREGISTREMENT #04
+                    </div>
+                    <h1 class="font-rajdhani text-white">VISADO <span class="text-red">DIGITAL</span></h1>
+                    <p class="font-inter text-dim">ABRAMS CTP (BORDER CONTROL) - IDENTIFICATION REQUISE</p>
+                    
+                    <div class="step-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="step-indicator">ÉTAPE <span id="current-step-display">1</span> / 3</div>
+                    </div>
+                </header>
+
+                <div class="wizard-content">
+                    
+                    <!-- STEP 1: OOC -->
+                    <div class="step step-active" id="step-1">
+                        <h2 class="step-title font-rajdhani">1. INFORMATIONS PASSAGER (HORA-ROL)</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <input type="text" id="ooc-name" class="kiosk-input" required>
+                                <label class="kiosk-label">Identité Réelle (Nom / Prénom)</label>
+                                <div class="input-line"></div>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" id="ooc-age" class="kiosk-input" required>
+                                <label class="kiosk-label">Âge Réel</label>
+                                <div class="input-line"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <input type="text" id="fivem-name" class="kiosk-input" required>
+                            <label class="kiosk-label">Identifiant Réseau (Nom FiveM / Discord)</label>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <p class="section-label">NIVEAU D'EXPÉRIENCE ROLEPLAY</p>
+                            <div class="exp-grid" id="exp-buttons">
+                                <button type="button" class="exp-btn" data-exp="DÉBUTANT">
+                                    <span class="btn-box"></span>
+                                    DÉBUTANT
+                                </button>
+                                <button type="button" class="exp-btn" data-exp="INTERMÉDIAIRE">
+                                    <span class="btn-box"></span>
+                                    INTERMÉDIAIRE
+                                </button>
+                                <button type="button" class="exp-btn" data-exp="EXPÉRIMENTÉ">
+                                    <span class="btn-box"></span>
+                                    EXPÉRIMENTÉ
+                                </button>
+                            </div>
+                            <input type="hidden" id="experience" value="">
+                        </div>
+
+                        <div class="kiosk-nav-bottom">
+                            <button type="button" class="btn-kiosk btn-next font-rajdhani" onclick="nextStep(1)">
+                                SUIVANT <span class="arrow-icon"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: IC -->
+                    <div class="step" id="step-2">
+                        <h2 class="step-title font-rajdhani">2. DOSSIER D'IMMIGRATION (IN-ROL)</h2>
+                        
+                        <div class="form-group mt-4">
+                            <input type="text" id="ic-name" class="kiosk-input" required>
+                            <label class="kiosk-label">Nom et Prénom du Visiteur (RP)</label>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="number" id="ic-age" class="kiosk-input" required>
+                            <label class="kiosk-label">Âge Déclaré</label>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <p class="section-label">ORIENTATION DU VISITEUR</p>
+                            <div class="kiosk-toggle-wrapper" onclick="togglePath()">
+                                <div class="kiosk-toggle" id="path-toggle">
+                                    <div class="toggle-thumb" id="path-thumb"></div>
+                                </div>
+                                <span id="path-label" class="path-label-text">CITOYEN MODÈLE (LÉGAL)</span>
+                            </div>
+                            <input type="hidden" id="ic-path" value="LÉGAL">
+                        </div>
+
+                        <div class="kiosk-nav-bottom space-between">
+                            <button type="button" class="btn-kiosk btn-prev font-rajdhani" onclick="prevStep(2)">
+                                <span class="arrow-icon prev"></span> RETOUR
+                            </button>
+                            <button type="button" class="btn-kiosk btn-next font-rajdhani" onclick="nextStep(2)">
+                                SUIVANT <span class="arrow-icon"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: STORY -->
+                    <div class="step" id="step-3">
+                        <h2 class="step-title font-rajdhani">3. MOTIF DU SÉJOUR (BACKGROUND)</h2>
+                        
+                        <div class="form-group form-group-tall">
+                            <textarea id="ic-story" class="kiosk-textarea" required></textarea>
+                            <label class="kiosk-label textarea-label">Décrivez vos origines, vos ambitions et la raison de votre venue à Los Santos...</label>
+                            <div class="textarea-corner topleft"></div>
+                            <div class="textarea-corner bottomright"></div>
+                        </div>
+
+                        <div class="kiosk-nav-bottom space-between">
+                            <button type="button" class="btn-kiosk btn-prev font-rajdhani" onclick="prevStep(3)">
+                                <span class="arrow-icon prev"></span> RETOUR
+                            </button>
+                            <!-- Fingerprint Submit Button -->
+                            <div class="fp-submit-container" id="fp-container">
+                                <div class="fp-btn" id="fp-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="fp-icon">
+                                        <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+                                        <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+                                        <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+                                        <path d="M2 12a10 10 0 0 1 18-6" />
+                                        <path d="M2 16h.01" />
+                                        <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+                                        <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+                                        <path d="M8.65 22c.21-.66.45-1.32.57-2" />
+                                        <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+                                    </svg>
+                                    <div class="fp-scan-line"></div>
+                                </div>
+                                <span class="fp-text font-rajdhani">MAINTENEZ POUR SOUMETTRE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUCCESS -->
+                    <div class="step step-success" id="step-success">
+                        <div class="success-ring">
+                            <div class="success-check"></div>
+                        </div>
+                        <h2 class="font-rajdhani text-white success-title">APPROBATION EN ATTENTE</h2>
+                        <p class="font-inter text-dim">Vos données biométriques ont été transmises à la douane centrale.</p>
+                        <p class="font-inter text-red mt-2 id-code-display">ID: ABR-849200X</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- RIGHT: Live ID Card -->
+            <aside class="id-section">
+                <!-- Decorative scan line that goes up and down over the card -->
+                <div class="id-scanner"></div>
+
+                <div class="id-card kiosk-glass" id="live-id">
+                    <div class="id-card-inner">
+                        <!-- Holographic map overlay on the card -->
+                        <div class="id-hologram"></div>
+                        
+                        <div class="id-header">
+                            <div class="id-brand">
+                                <img src="assets/logo1.png" alt="Abrams RP Logo" class="id-logo-img">
+                            </div>
+                            <div class="id-qr-box">
+                                <!-- Generated QR Code for added value/functional scanning -->
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=ABRAMS-RP-VALIDATION-SERVER" alt="QR Security" class="qr-code-img">
+                            </div>
+                        </div>
+
+                        <div class="id-body">
+                            <div class="id-photo-box">
+                                <div class="photo-placeholder">
+                                    <div class="user-silhouette"></div>
+                                </div>
+                                <div class="biometric-scan">BIO-SCAN ACTIF</div>
+                            </div>
+                            <div class="id-data">
+                                <div class="data-block">
+                                    <span class="data-label">NOM COMPLET</span>
+                                    <span class="data-val font-rajdhani" id="live-ic-name">NON RENSEIGNÉ</span>
+                                </div>
+                                <div class="data-row">
+                                    <div class="data-block">
+                                        <span class="data-label">ÂGE</span>
+                                        <span class="data-val font-rajdhani" id="live-ic-age">--</span>
+                                    </div>
+                                    <div class="data-block">
+                                        <span class="data-label">STATUT</span>
+                                        <span class="data-val font-rajdhani" id="live-ic-path">CLAIRE</span>
+                                    </div>
+                                </div>
+                                <div class="data-block mt-1">
+                                    <span class="data-label">RÉSEAU IDENTIFIÉ</span>
+                                    <span class="data-val data-val-small font-rajdhani" id="live-discord">---</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="id-footer">
+                            <div class="barcode"></div>
+                            <div class="issue-date font-rajdhani">EXP: <span id="current-date"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="js/whitelist.js"></script>
+</body>
+</html>
