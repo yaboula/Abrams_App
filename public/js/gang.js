@@ -96,21 +96,33 @@
   function animateEntrance() {
     if (typeof gsap === 'undefined') return;
 
-    gsap.from('.dash-header', {
-      opacity: 0, y: -20, duration: 0.6, ease: 'power3.out'
-    });
+    gsap.fromTo('.dash-header',
+      { opacity: 0, y: -20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', clearProps: 'all' }
+    );
 
-    gsap.from('.node-card', {
-      opacity: 0, y: 30, scale: 0.95,
-      duration: 0.5,
-      stagger: 0.08,
-      ease: 'power3.out',
-      delay: 0.2
-    });
+    gsap.fromTo('.node-card',
+      { opacity: 0, y: 30, scale: 0.95 },
+      {
+        opacity: 1, y: 0, scale: 1,
+        duration: 0.5,
+        stagger: 0.08,
+        ease: 'power3.out',
+        delay: 0.2,
+        onComplete: function () {
+          // Guarantee all cards are visible after animation completes
+          document.querySelectorAll('.node-card').forEach(card => {
+            card.style.opacity = '1';
+            card.style.transform = '';
+          });
+        }
+      }
+    );
 
-    gsap.from('.dash-footer', {
-      opacity: 0, y: 20, duration: 0.5, ease: 'power3.out', delay: 0.7
-    });
+    gsap.fromTo('.dash-footer',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.7, clearProps: 'all' }
+    );
   }
 
   // ──────────────────────────────────────
