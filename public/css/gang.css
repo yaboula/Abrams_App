@@ -681,14 +681,16 @@ html, body {
 .modal-section-label::before { content: ''; width: 16px; height: 1.5px; background: var(--color-accent); }
 
 .gang-input-group { position: relative; margin-bottom: 20px; }
-.gang-input, .gang-textarea {
-  width: 100%; background: transparent; border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+.gang-input {
+  width: 100%; background: rgba(255,255,255,0.02); border: none;
+  border-bottom: 2px solid rgba(255,255,255,0.15);
   color: var(--color-text); font-family: var(--font-body);
-  font-size: 14px; padding: 10px 0; outline: none;
-  transition: border-color 0.3s ease;
+  font-size: 14px; padding: 12px; outline: none;
+  transition: all 0.3s ease;
+  border-radius: 4px 4px 0 0;
 }
 .gang-input:focus, .gang-textarea:focus {
+  background: rgba(230,57,70,0.04);
   border-bottom-color: var(--color-accent);
   box-shadow: 0 1px 0 0 var(--color-accent);
 }
@@ -860,11 +862,31 @@ html, body {
    MODAL 4 — MAP
    ══════════════════════════════════════ */
 .map-container {
-  width: 100%; height: 380px;
-  background: #0d0d12 url('https://i.imgur.com/KhVzYG4.png') center/cover no-repeat;
+  width: 100%; height: 500px;
+  background: #0d0d12 url('/assets/map-bg.jpg') center/contain no-repeat;
   border: 1px solid rgba(230,57,70,0.2);
   position: relative; cursor: crosshair;
   margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+.map-container::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: 
+    linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 50%),
+    linear-gradient(90deg, rgba(230,57,70,0.05) 1px, transparent 1px),
+    linear-gradient(rgba(230,57,70,0.05) 1px, transparent 1px);
+  background-size: 100% 4px, 40px 40px, 40px 40px;
+  z-index: 10;
+}
+.map-container::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border: 2px solid rgba(230,57,70,0.4);
+  clip-path: polygon(
+    0 15px, 15px 0, calc(100% - 15px) 0, 100% 15px, 
+    100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px)
+  );
+  z-index: 11;
 }
 .map-pin {
   position: absolute; transform: translate(-50%, -50%);
@@ -1016,15 +1038,14 @@ html, body {
    SCROLLBAR STYLING
    ══════════════════════════════════════ */
 ::-webkit-scrollbar {
-  width: 8px; /* Refined thin scrollbar */
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(10, 10, 15, 0.4);
-  border-left: 2px solid transparent; /* Creates margin from right edge */
-  background-clip: padding-box;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(230, 57, 70, 0.3);
+  background-color: rgba(230, 57, 70, 0.5);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
