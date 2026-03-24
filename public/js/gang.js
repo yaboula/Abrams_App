@@ -633,11 +633,19 @@
 
   function buildModal2() {
     const frag = document.createElement('div');
+    const svgCrosshair = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`;
+    const svgBriefcase = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`;
+    const svgSkull = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9h0"/><path d="M15 9h0"/><path d="M12 21v-4"/><path d="M16 21v-4c0-1.5-1.5-2-1.5-2H9.5C8 15 6.5 15.5 6.5 17v4"/><circle cx="12" cy="10" r="8"/></svg>`;
+    const svgMotorcycle = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg>`;
+    const svgNetwork = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+    const svgHexagon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>`;
+
     const types = [
-      { icon: '🔫', label: 'Pandilla' }, { icon: '🎩', label: 'Mafia' },
-      { icon: '💀', label: 'Cártel' }, { icon: '🏍️', label: 'MC' },
-      { icon: '🕸️', label: 'Red Criminal' }, { icon: '⬡', label: 'Otro' }
+      { icon: svgCrosshair, label: 'Pandilla' }, { icon: svgBriefcase, label: 'Mafia' },
+      { icon: svgSkull, label: 'Cártel' }, { icon: svgMotorcycle, label: 'MC' },
+      { icon: svgNetwork, label: 'Red Criminal' }, { icon: svgHexagon, label: 'Otro' }
     ];
+
     frag.innerHTML = `
       <div class="modal-section">
         <div class="modal-section-label">IDENTIDAD DE LA ORGANIZACIÓN</div>
@@ -651,7 +659,7 @@
       <div class="modal-section">
         <div class="modal-section-label">TIPOLOGÍA CRIMINAL</div>
         <div class="holo-grid" id="holoGrid">
-          ${types.map(t => `<div class="holo-card" data-type="${t.label}"><div class="holo-card-icon">${t.icon}</div><div class="holo-card-label">${t.label}</div></div>`).join('')}
+          ${types.map(t => `<div class="holo-card" data-type="${t.label}"><div class="holo-card-icon" style="width:28px;height:28px;margin:0 auto 8px auto;">${t.icon}</div><div class="holo-card-label">${t.label}</div></div>`).join('')}
         </div>
       </div>
       <div class="modal-section">
@@ -669,39 +677,59 @@
       <div class="modal-section">
         <div class="gang-input-group">
           <label class="gang-label">Vestimenta y Rasgos Identificativos</label>
-          <input class="gang-input" type="text" id="m2-appearance" placeholder="Colores, estilo, señas de identidad..." required>
+          <textarea class="gang-textarea" id="m2-appearance" placeholder="Colores, tatuajes obligatorios, tipos de vehículos, estilo de ropa..." required></textarea>
         </div>
       </div>
       <div class="modal-section">
         <div class="modal-section-label">MANIFIESTO REDACTADO</div>
         <p style="font-size:11px;color:var(--color-text-dim);margin-bottom:10px;letter-spacing:0.5px">
-          Escribe la historia y lore de tu organización. Las palabras clave serán detectadas.
+          Escribe la historia y lore de tu organización. El escáner detectará palabras clave estructurales.
         </p>
-        <div class="manifesto-editor" contenteditable="true" id="manifestoEditor" data-placeholder="Escribe aquí el lore de tu organización..."></div>
+        <div class="manifesto-container">
+          <div class="manifesto-backdrop" id="manifestoBackdrop"></div>
+          <textarea class="manifesto-textarea" id="m2-lore" placeholder="Escribe aquí el lore de tu organización..."></textarea>
+        </div>
       </div>
     `;
+
     setTimeout(() => {
+      // Setup Type selections
       const grid = document.getElementById('holoGrid');
-      if (!grid) return;
-      grid.querySelectorAll('.holo-card').forEach(card => {
-        card.addEventListener('click', () => {
-          grid.querySelectorAll('.holo-card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
+      if (grid) {
+        grid.querySelectorAll('.holo-card').forEach(card => {
+          card.addEventListener('click', () => {
+            grid.querySelectorAll('.holo-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+          });
         });
-      });
-      const editor = document.getElementById('manifestoEditor');
-      if (editor) {
-        const KW = /\b(mafia|sangre|drogas|armas|territorio|dinero|c[aá]rtel|muerte)\b/gi;
-        editor.addEventListener('input', () => {
-          const sel = window.getSelection();
-          const text = editor.innerText;
-          const hl = text.replace(KW, '<span class="keyword-glow">$1</span>');
-          if (hl !== editor.innerHTML) {
-            editor.innerHTML = hl;
-            const r = document.createRange();
-            r.selectNodeContents(editor); r.collapse(false);
-            sel.removeAllRanges(); sel.addRange(r);
+      }
+
+      // Lore Scanner overlay system
+      const textarea = document.getElementById('m2-lore');
+      const backdrop = document.getElementById('manifestoBackdrop');
+      
+      if (textarea && backdrop) {
+        const keywordsRegex = /\b(mafia|sangre|drogas|armas|territorio|dinero|c[aá]rtel|muerte|pandilla|banda|ilegal)\b/gi;
+        
+        textarea.addEventListener('input', () => {
+          // Replace angled brackets to prevent HTML injection in the backdrop
+          let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          
+          // Apply Keyword Highlighting
+          let highlightedText = text.replace(keywordsRegex, '<span class="keyword-glow">$&</span>');
+          
+          // To ensure proper line height mirroring on empty lines ending with \n
+          if (text.endsWith("\\n")) {
+              highlightedText += " ";
           }
+          
+          backdrop.innerHTML = highlightedText;
+        });
+
+        // Sync scrolling perfectly
+        textarea.addEventListener('scroll', () => {
+          backdrop.scrollTop = textarea.scrollTop;
+          backdrop.scrollLeft = textarea.scrollLeft;
         });
       }
     }, 50);
