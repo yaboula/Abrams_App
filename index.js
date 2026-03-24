@@ -163,6 +163,81 @@ app.post('/api/submit-visado', isAuthenticated, async (req, res) => {
     }
 });
 
+// --- GANG MATRIX SUBMISSION ---
+app.post('/api/submit-gang', isAuthenticated, async (req, res) => {
+    try {
+        const { ooc, ic, economy, territory, roster, diplomacy } = req.body;
+        const userId = req.session.userId;
+
+        if (!client.isReady()) {
+            return res.status(500).json({ error: 'Discord bot is not ready' });
+        }
+
+        let channel = client.channels.cache.get(process.env.STAFF_CHANNEL_ID);
+        if (!channel) {
+            try {
+                channel = await client.channels.fetch(process.env.STAFF_CHANNEL_ID);
+            } catch (err) {
+                console.error('Error fetching channel:', err);
+            }
+        }
+
+        if (!channel) {
+            return res.status(500).json({ error: 'Staff channel not found' });
+        }
+
+        // Build economy string
+        const econStr = economy
+            ? `Narcotráfico: ${economy.drugs || 0} | Armas: ${economy.weapons || 0} | Extorsión: ${economy.extortion || 0} | Robos: ${economy.robbery || 0} | Blanqueo: ${economy.laundering || 0}`
+            : 'N/A';
+
+        // Build roster string
+        let rosterStr = 'N/A';
+        if (roster && roster.roster && roster.roster.length > 0) {
+            rosterStr = roster.roster.map((m, i) => `${i + 1}. ${m.name} (${m.rank}) — ${m.discord}`).join('\n');
+        }
+
+        const embed = new EmbedBuilder()
+            .setTitle('🔫 GANG MATRIX — NUEVO DOSSIER CRIMINAL')
+            .setColor('#E63946')
+            .addFields(
+                { name: '👤 Operador OOC', value: `**Nombre:** ${ooc?.name || 'N/A'}\n**Edad:** ${ooc?.age || 'N/A'}\n**Discord:** ${ooc?.discord || 'N/A'}\n**Experiencia:** ${ooc?.experience || 'N/A'}${ooc?.sanctioned ? `\n⚠️ **Sancionado:** ${ooc.sanctionDetail}` : ''}`, inline: false },
+                { name: '🏴 Organización', value: `**Nombre:** ${ic?.orgName || 'N/A'}\n**Tipo:** ${ic?.type || 'N/A'}\n**Vestimenta:** ${ic?.appearance || 'N/A'}`, inline: true },
+                { name: '🎯 Objetivos', value: `**Corto Plazo:** ${ic?.goalsShort || 'N/A'}\n**Largo Plazo:** ${ic?.goalsLong || 'N/A'}`, inline: true },
+                { name: '📖 Lore / Manifiesto', value: (ic?.lore || 'N/A').substring(0, 1024) },
+                { name: '💰 Economía Criminal', value: econStr, inline: false },
+                { name: '🏢 Tapadera Legal', value: economy?.front || 'N/A', inline: true },
+                { name: '📍 Territorio', value: `**Zona:** ${territory?.zoneName || 'N/A'}\n**Coords:** ${territory?.coords || 'N/A'}`, inline: true },
+                { name: '⏰ Horario Operativo', value: roster?.timezone || 'N/A', inline: true },
+                { name: '👥 Escuadra', value: rosterStr.substring(0, 1024) },
+                { name: '🤝 Diplomacia', value: diplomacy?.stance || 'N/A' },
+                { name: '📋 Enviado por', value: `<@${userId}> (${req.session.username})`, inline: false }
+            )
+            .setFooter({ text: 'Abrams RP — Gang Matrix Automated System' })
+            .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`gang_approve_${userId}`)
+                    .setLabel('Aprobar Organización')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId(`gang_reject_${userId}`)
+                    .setLabel('Rechazar')
+                    .setStyle(ButtonStyle.Danger)
+            );
+
+        await channel.send({ embeds: [embed], components: [row] });
+
+        res.json({ success: true, message: 'Gang dossier transmitted successfully' });
+
+    } catch (error) {
+        console.error('Error submitting gang dossier:', error);
+        res.status(500).json({ error: 'Internal server error while processing gang application' });
+    }
+});
+
 
 // --- DISCORD BOT ---
 const client = new Client({
@@ -185,9 +260,22 @@ client.on('interactionCreate', async interaction => {
     await interaction.deferUpdate();
 
     const staffId = interaction.user.id;
-    const customId = interaction.customId; // approve_12345 or reject_12345
-    const action = customId.split('_')[0];
-    const targetUserId = customId.split('_')[1];
+    const customId = interaction.customId;
+
+    // Determine if this is a gang or whitelist interaction
+    const isGang = customId.startsWith('gang_');
+    let action, targetUserId;
+
+    if (isGang) {
+        // gang_approve_12345 or gang_reject_12345
+        const parts = customId.split('_');
+        action = parts[1]; // approve or reject
+        targetUserId = parts[2];
+    } else {
+        // approve_12345 or reject_12345
+        action = customId.split('_')[0];
+        targetUserId = customId.split('_')[1];
+    }
 
     try {
         const guild = client.guilds.cache.get(process.env.GUILD_ID);
@@ -204,22 +292,28 @@ client.on('interactionCreate', async interaction => {
 
         if (action === 'approve') {
             if (member) {
-                const role = guild.roles.cache.get(process.env.ROLE_WHITELIST_ID);
-                if (role) {
-                    await member.roles.add(role);
-                } else {
-                    console.error('Role to assign not found!');
+                if (!isGang) {
+                    // Whitelist: assign role
+                    const role = guild.roles.cache.get(process.env.ROLE_WHITELIST_ID);
+                    if (role) {
+                        await member.roles.add(role);
+                    } else {
+                        console.error('Role to assign not found!');
+                    }
                 }
                 // Send DM
                 try {
-                    await member.send(`🎉 Congratulations! Your visa for Abrams RP has been **Approved**. You can now access the Discord server and proceed to the waiting room for your Whitelist interview.`);
+                    const msg = isGang
+                        ? `🔫 ¡Tu dossier de organización criminal para Abrams RP ha sido **Aprobado**! Puedes proceder con la creación de tu facción.`
+                        : `🎉 Congratulations! Your visa for Abrams RP has been **Approved**. You can now access the Discord server and proceed to the waiting room for your Whitelist interview.`;
+                    await member.send(msg);
                 } catch (dmError) {
                     console.log(`Could not send DM to ${targetUserId}. DMs are closed.`);
                 }
             }
             
             // Update message
-            embed.setColor('#2ECC71'); // Green
+            embed.setColor('#2ECC71');
             embed.spliceFields(
                 embed.data.fields.length, 0,
                 { name: "📝 STATUS", value: `✅ Approved by <@${staffId}>` }
@@ -230,16 +324,18 @@ client.on('interactionCreate', async interaction => {
         } else if (action === 'reject') {
             
             if (member) {
-                // Send DM
                 try {
-                    await member.send(`❌ Your visa for Abrams RP has been **Rejected**. If you have any questions, please open a ticket on the server.`);
+                    const msg = isGang
+                        ? `❌ Tu dossier de organización criminal para Abrams RP ha sido **Rechazado**. Si tienes preguntas, abre un ticket en el servidor.`
+                        : `❌ Your visa for Abrams RP has been **Rejected**. If you have any questions, please open a ticket on the server.`;
+                    await member.send(msg);
                 } catch (dmError) {
                     console.log(`Could not send DM to ${targetUserId}. DMs are closed.`);
                 }
             }
 
             // Update message
-            embed.setColor('#E74C3C'); // Red
+            embed.setColor('#E74C3C');
             embed.spliceFields(
                 embed.data.fields.length, 0,
                 { name: "📝 STATUS", value: `❌ Rejected by <@${staffId}>` }
