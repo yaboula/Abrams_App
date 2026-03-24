@@ -865,7 +865,7 @@ html, body {
 .map-zone-mode {
   width: 100%; aspect-ratio: 1536/2048; /* Exact map proportion */
   max-height: 800px;
-  background: #0d0d12 url('../assets/map-bg.jpg') center/100% 100% no-repeat;
+  background: #0d0d12 url('../assets/mapa-bg.jpg') center/100% 100% no-repeat;
   border: 1px solid rgba(230,57,70,0.2);
   position: relative; cursor: crosshair;
   margin-bottom: 24px;
