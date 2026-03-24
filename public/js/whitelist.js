@@ -1,4 +1,18 @@
-﻿const WEBHOOK_URL = 'VOTRE_WEBHOOK_ICI'; // <-- Remplacer par URL Webhook       
+// Backend communication logic
+// Check Auth Status on Load
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/user');
+        const data = await res.json();
+        if (data.loggedIn) {
+            document.getElementById('login-overlay').style.display = 'none';
+            // Pre-fill the discord name or let the live ID handle it
+            document.getElementById('live-discord').innerText = data.username;
+        }
+    } catch (e) {
+        console.error('Failed to check auth status');
+    }
+});       
 let currentStep = 1;
 
 // ID Card Expiration Date setup
@@ -167,38 +181,34 @@ function submitVisado() {
     fpContainer.querySelector('.fp-text').innerHTML = 'TRANSMISSION...';        
 
     const payload = {
-        embeds: [{
-            title: "🛂 NOUVEAU VISADO DIGITAL - IDENTIFICATION CTP",
-            color: 15087174,
-            fields: [
-                { name: "Nom Réel (OOC)", value: document.getElementById('ooc-name').value, inline: true },
-                { name: "Âge Réel", value: document.getElementById('ooc-age').value, inline: true },
-                { name: "Discord/FiveM", value: document.getElementById('fivem-name').value, inline: true },
-                { name: "Expérience", value: document.getElementById('experience').value, inline: true },
-                { name: "Identité RP", value: document.getElementById('ic-name').value, inline: true },
-                { name: "Âge Déclaré", value: document.getElementById('ic-age').value, inline: true },
-                { name: "Orientation", value: document.getElementById('ic-path').value, inline: true },
-                { name: "Dossier Background", value: document.getElementById('ic-story').value }
-            ],
-            footer: { text: "Abrams RP Kiosk - Système Biométrique Automatisé" },
-            timestamp: new Date().toISOString()
-        }]
+        oocName: document.getElementById('ooc-name').value,
+        oocAge: document.getElementById('ooc-age').value,
+        fivemName: document.getElementById('fivem-name').value,
+        experience: document.getElementById('experience').value,
+        icName: document.getElementById('ic-name').value,
+        icAge: document.getElementById('ic-age').value,
+        icPath: document.getElementById('ic-path').value,
+        icStory: document.getElementById('ic-story').value
     };
 
-    if (WEBHOOK_URL !== 'VOTRE_WEBHOOK_ICI') {
-        fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).then(() => showSuccess())
-        .catch(err => {
-            console.error(err);
-            fpContainer.style.pointerEvents = 'auto';
-            fpContainer.querySelector('.fp-text').innerHTML = 'MAINTENEZ POUR SOUMETTRE';
-        });
-    } else {
-        setTimeout(showSuccess, 1500); // Simulated delay for luxury feel       
-    }
+    fetch('/api/submit-visado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json())
+      .then(data => {
+          if(data.success) {
+              showSuccess();
+          } else {
+              throw new Error(data.error || 'Server rejected');
+          }
+      })
+      .catch(err => {
+          console.error(err);
+          fpContainer.style.pointerEvents = 'auto';
+          fpContainer.querySelector('.fp-text').innerHTML = 'ERREUR - RÉESSAYER';
+          setTimeout(() => fpContainer.querySelector('.fp-text').innerHTML = 'MAINTENEZ POUR SOUMETTRE', 3000);
+      });
 }
 
 function showSuccess() {
