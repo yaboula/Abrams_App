@@ -853,16 +853,20 @@
         </div>
       </div>
       <div class="modal-section">
-        <div class="modal-section-label">MIEMBROS DEL ESCUADRÓN</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div class="modal-section-label" style="margin-bottom: 0;">MIEMBROS DEL ESCUADRÓN</div>
+          <button class="btn-add-operative" id="btnAddOperative" type="button" style="width: auto; padding: 6px 12px; margin: 0; font-size: 10px;"><span>+</span> AÑADIR OPERATIVO</button>
+        </div>
         <div class="roster-container" id="rosterContainer">
           <div class="roster-card" data-roster-id="1">
             <div class="roster-card-header"><span class="roster-card-tag">LÍDER — #1</span></div>
-            <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje" required></div>
-            <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000" required></div>
-            <div class="gang-input-group"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" value="Líder" readonly></div>
+            <div class="gang-form-grid">
+              <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje" required></div>
+              <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000" required></div>
+            </div>
+            <div class="gang-input-group" style="margin-top: 15px;"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" value="Líder" readonly></div>
           </div>
         </div>
-        <button class="btn-add-operative" id="btnAddOperative" type="button"><span>+</span> AÑADIR OPERATIVO</button>
       </div>
     `;
     setTimeout(() => {
@@ -876,9 +880,11 @@
         card.className = 'roster-card'; card.dataset.rosterId = rc;
         card.innerHTML = `
           <div class="roster-card-header"><span class="roster-card-tag">OPERATIVO — #${rc}</span><button class="roster-card-remove" type="button">✕</button></div>
-          <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje"></div>
-          <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000"></div>
-          <div class="gang-input-group"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" placeholder="Soldado, Sicario, etc."></div>
+          <div class="gang-form-grid">
+            <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje"></div>
+            <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000"></div>
+          </div>
+          <div class="gang-input-group" style="margin-top: 15px;"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" placeholder="Soldado, Sicario, etc."></div>
         `;
         card.querySelector('.roster-card-remove').addEventListener('click', () => {
           if (typeof gsap !== 'undefined') gsap.to(card, { opacity:0, scale:0.9, height:0, duration:0.3, ease:'power2.in', onComplete:()=>card.remove() });
