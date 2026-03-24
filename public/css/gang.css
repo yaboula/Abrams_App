@@ -699,6 +699,11 @@ html, body {
   padding: 12px; border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.02);
   box-sizing: border-box;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
 }
 .gang-textarea:focus { border-color: rgba(230,57,70,0.4); box-shadow: 0 0 0 1px rgba(230,57,70,0.2); }
 
