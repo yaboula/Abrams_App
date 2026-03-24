@@ -808,61 +808,53 @@
   function buildModal4() {
     const frag = document.createElement('div');
     frag.innerHTML = `
-      <div class="modal-section">
-        <div class="modal-section-label">TERRITORIO DE OPERACIÓN</div>
-        <div class="map-container" id="mapContainer">
-          <div class="map-lens" id="mapLens"><div class="map-lens-center"></div></div>
+      <div class="modal-section" style="margin-bottom: 0;">
+        <div class="modal-section-label">SELECCIÓN DE TERRITORIO</div>
+        
+        <div class="map-zone-mode" id="mapZoneContainer">
+          <div class="map-hud-overlay"></div>
+          <!-- Zonas Clicables (Top a Bottom) -->
+          <div class="map-zone" data-zone="Norte (Paleto, Chiliad)" style="top: 0%; left: 0%; width: 100%; height: 26%;"></div>
+          <div class="map-zone" data-zone="Condado de Blaine (Sandy, Senora)" style="top: 26%; left: 0%; width: 100%; height: 22%;"></div>
+          <div class="map-zone" data-zone="Vinewood y Rockford Hills" style="top: 48%; left: 0%; width: 100%; height: 16%;"></div>
+          <div class="map-zone" data-zone="Oeste (Vespucci, Del Perro)" style="top: 64%; left: 0%; width: 45%; height: 16%;"></div>
+          <div class="map-zone" data-zone="Sur y Centro (Davis, Downtown)" style="top: 64%; left: 45%; width: 55%; height: 16%;"></div>
+          <div class="map-zone" data-zone="Este y Espejo (Mirror Park, East LS)" style="top: 50%; left: 65%; width: 35%; height: 14%;"></div>
+          <div class="map-zone" data-zone="Puerto Sur (Elysian y Terminal)" style="top: 80%; left: 0%; width: 100%; height: 20%;"></div>
         </div>
-        <div class="gang-form-grid">
+
+        <div class="gang-form-grid" style="grid-template-columns: 1fr; margin-top: 16px;">
           <div class="gang-input-group">
-            <label class="gang-label">Nombre de la Zona Reclamada</label>
-            <input class="gang-input" type="text" id="m4-zone-name" placeholder="Ej: Puerto Sur de Los Santos" required>
+            <label class="gang-label">Zona Principal (Selecciona en el mapa)</label>
+            <input class="gang-input terminal" type="text" id="m4-zone-name" placeholder="[ ZONA NO SELECCIONADA ]" readonly required style="pointer-events: none;">
           </div>
           <div class="gang-input-group">
-            <label class="gang-label">Coordenadas Tácticas</label>
-            <input class="gang-input terminal" type="text" id="m4-coords" readonly placeholder="[ HAZ CLIC EN EL MAPA ]">
+            <label class="gang-label">Ubicación Estratégica / Detalles (Opcional)</label>
+            <textarea class="gang-textarea" id="m4-zone-details" placeholder="Describe calles, bloques o edificios específicos de tu HQ..."></textarea>
           </div>
         </div>
       </div>
     `;
-    setTimeout(() => {
-      const map = document.getElementById('mapContainer');
-      const ci = document.getElementById('m4-coords');
-      const lens = document.getElementById('mapLens');
-      if (!map) return;
-      
-      map.addEventListener('mousemove', (e) => {
-        const r = map.getBoundingClientRect();
-        const x = e.clientX - r.left;
-        const y = e.clientY - r.top;
-        if (x < 0 || y < 0 || x > r.width || y > r.height) {
-          lens.style.display = 'none'; return;
-        }
-        lens.style.display = 'block';
-        lens.style.left = `${x}px`;
-        lens.style.top = `${y}px`;
-        
-        const bgX = (x / r.width) * 100;
-        const bgY = (y / r.height) * 100;
-        lens.style.backgroundPosition = `${bgX}% ${bgY}%`;
-      });
-      
-      map.addEventListener('mouseleave', () => lens.style.display = 'none');
-      map.addEventListener('mouseenter', () => lens.style.display = 'block');
 
-      map.addEventListener('click', (e) => {
-        const r = map.getBoundingClientRect();
-        const xp = ((e.clientX-r.left)/r.width)*100;
-        const yp = ((e.clientY-r.top)/r.height)*100;
-        const old = map.querySelector('.map-pin'); if (old) old.remove();
-        const pin = document.createElement('div');
-        pin.className = 'map-pin'; pin.style.left = `${xp}%`; pin.style.top = `${yp}%`;
-        pin.innerHTML = `<div class="map-pin-core"></div><div class="map-pin-ring"></div>`;
-        map.appendChild(pin);
-        ci.value = `[ LAT: ${((xp/100)*8000-4000).toFixed(2)} | LNG: ${((yp/100)*-8000+4000).toFixed(2)} ]`;
-        if (typeof gsap !== 'undefined') gsap.fromTo(pin, { scale:0, opacity:0 }, { scale:1, opacity:1, duration:0.3, ease:'back.out(2)' });
+    setTimeout(() => {
+      const container = document.getElementById('mapZoneContainer');
+      const inputZone = document.getElementById('m4-zone-name');
+      if (!container) return;
+
+      const zones = container.querySelectorAll('.map-zone');
+      zones.forEach(zone => {
+        zone.addEventListener('click', () => {
+          zones.forEach(z => z.classList.remove('active'));
+          zone.classList.add('active');
+          inputZone.value = `[ ZONA: ${zone.dataset.zone.toUpperCase()} ]`;
+          
+          if (typeof gsap !== 'undefined') {
+            gsap.fromTo(inputZone, { color: '#fff', backgroundColor: 'rgba(255,255,255,0.2)' }, { color: 'var(--color-accent)', backgroundColor: 'transparent', duration: 0.5 });
+          }
+        });
       });
     }, 50);
+
     return frag;
   }
 
@@ -1005,7 +997,7 @@
     if (total !== 100 || !val('m3-front')) { shake(); return false; }
     return true;
   }
-  function v4() { if (!val('m4-zone-name')||!val('m4-coords')) { shake(); return false; } return true; }
+  function v4() { if (!val('m4-zone-name')) { shake(); return false; } return true; }
   function v5() {
     if (!val('m5-timezone')) { shake(); return false; }
     const lc = document.querySelector('.roster-card[data-roster-id="1"]');
@@ -1027,7 +1019,7 @@
       case 1: STATE.modalData[1] = { name:val('m1-name'), age:val('m1-age'), discord:val('m1-discord'), experience:val('m1-experience'), sanctioned:document.getElementById('sanctionsToggle')?.classList.contains('active')||false, sanctionDetail:val('m1-sanction-detail')||'' }; break;
       case 2: { const s = document.querySelector('.holo-card.selected'); const e = document.getElementById('manifestoEditor'); STATE.modalData[2] = { orgName:val('m2-org-name'), type:s?s.dataset.type:'', goalsShort:val('m2-goals-short'), goalsLong:val('m2-goals-long'), appearance:val('m2-appearance'), lore:e?e.innerText.trim():'' }; break; }
       case 3: { const ids=['drugs','weapons','extortion','robbery','laundering']; const eco={}; ids.forEach(id=>{ const e=document.getElementById(`slider-${id}`); eco[id]=e?parseInt(e.value):0; }); eco.front=val('m3-front'); STATE.modalData[3]=eco; break; }
-      case 4: STATE.modalData[4] = { zoneName:val('m4-zone-name'), coords:val('m4-coords') }; break;
+      case 4: STATE.modalData[4] = { zoneName:val('m4-zone-name'), details:val('m4-zone-details') }; break;
       case 5: { const cards=document.querySelectorAll('.roster-card'); const roster=[]; cards.forEach(c=>{ const n=c.querySelector('.roster-name')?.value.trim(); const d=c.querySelector('.roster-discord')?.value.trim(); const r=c.querySelector('.roster-rank')?.value.trim(); if(n) roster.push({name:n,discord:d,rank:r}); }); STATE.modalData[5]={timezone:val('m5-timezone'),roster}; break; }
       case 6: STATE.modalData[6] = { stance:val('m6-stance'), rulesAccepted:true }; break;
     }
