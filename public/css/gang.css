@@ -265,10 +265,15 @@ html, body {
   font-family: 'Courier New', monospace;
   font-size: 11px;
   letter-spacing: 2px;
-  color: var(--color-text-dim);
+  color: var(--color-accent);
   text-transform: uppercase;
   animation: status-flicker 4s infinite;
   text-align: center;
+  background: rgba(10, 10, 15, 0.85);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(230, 57, 70, 0.2);
+  z-index: 20;
 }
 
 @keyframes status-flicker {
@@ -384,6 +389,7 @@ html, body {
 .plate-status {
   display: flex; align-items: center; gap: 6px;
   margin-top: auto;
+  align-self: flex-end;
   padding: 5px 12px;
   background: rgba(230, 57, 70, 0.1);
   border: 1px solid rgba(230, 57, 70, 0.3);

@@ -66,21 +66,23 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const cx = vw / 2;
-    const cy = vh / 2 - 30;
+    const cy = vh / 2;
 
-    // Tighter orbit — 6 plates in a hexagonal arc around center
-    const radiusX = Math.min(vw * 0.34, 440);
-    const radiusY = Math.min(vh * 0.3, 260);
-    const startAngle = -65;
-    const endAngle = 65;
-    const count = plates.length;
+    // Wide orbit — 3 plates on the left, 3 on the right
+    const radiusX = Math.min(vw * 0.42, 650);
+    const radiusY = Math.min(vh * 0.35, 320);
+    
+    // Angles (0 is bottom, 90 is right, -90 is left, +/-180 is top)
+    // Left side: -130 (Top-L), -90 (Mid-L), -50 (Bot-L)
+    // Right side: 130 (Top-R), 90 (Mid-R), 50 (Bot-R)
+    const angles = [-130, -90, -50, 50, 90, 130];
 
     plates.forEach((plate, i) => {
-      const angleDeg = startAngle + (endAngle - startAngle) * (i / (count - 1));
+      const angleDeg = angles[i];
       const angleRad = (angleDeg * Math.PI) / 180;
 
       const x = cx + radiusX * Math.sin(angleRad) - plate.offsetWidth / 2;
-      const y = cy + radiusY * Math.cos(angleRad) - plate.offsetHeight / 2 + 50;
+      const y = cy + radiusY * Math.cos(angleRad) - plate.offsetHeight / 2;
 
       plate.style.left = `${x}px`;
       plate.style.top = `${y}px`;
@@ -119,7 +121,7 @@
     document.querySelectorAll('.orbital-plate').forEach(plate => {
       const rect = plate.getBoundingClientRect();
       const px = rect.left + rect.width / 2;
-      const py = rect.top + rect.height / 2;
+      const py = rect.top;
 
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', px);
