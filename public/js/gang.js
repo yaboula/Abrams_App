@@ -810,7 +810,9 @@
     frag.innerHTML = `
       <div class="modal-section">
         <div class="modal-section-label">TERRITORIO DE OPERACIÓN</div>
-        <div class="map-container" id="mapContainer"></div>
+        <div class="map-container" id="mapContainer">
+          <div class="map-lens" id="mapLens"><div class="map-lens-center"></div></div>
+        </div>
         <div class="gang-form-grid">
           <div class="gang-input-group">
             <label class="gang-label">Nombre de la Zona Reclamada</label>
@@ -826,7 +828,28 @@
     setTimeout(() => {
       const map = document.getElementById('mapContainer');
       const ci = document.getElementById('m4-coords');
+      const lens = document.getElementById('mapLens');
       if (!map) return;
+      
+      map.addEventListener('mousemove', (e) => {
+        const r = map.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        const y = e.clientY - r.top;
+        if (x < 0 || y < 0 || x > r.width || y > r.height) {
+          lens.style.display = 'none'; return;
+        }
+        lens.style.display = 'block';
+        lens.style.left = `${x}px`;
+        lens.style.top = `${y}px`;
+        
+        const bgX = (x / r.width) * 100;
+        const bgY = (y / r.height) * 100;
+        lens.style.backgroundPosition = `${bgX}% ${bgY}%`;
+      });
+      
+      map.addEventListener('mouseleave', () => lens.style.display = 'none');
+      map.addEventListener('mouseenter', () => lens.style.display = 'block');
+
       map.addEventListener('click', (e) => {
         const r = map.getBoundingClientRect();
         const xp = ((e.clientX-r.left)/r.width)*100;
