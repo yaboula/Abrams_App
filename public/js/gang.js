@@ -1,37 +1,21 @@
 /* ============================================
-   GANG MATRIX — Core Logic & Modal System
+   GANG MATRIX — HOLOGRAPHIC TERMINAL ENGINE
    Abrams RP — Cybertech / Valorant UI
    ============================================ */
 
 (function () {
   'use strict';
 
-  // ──────────────────────────────────────
-  // STATE MANAGER
-  // ──────────────────────────────────────
+  // ══════════════════════════════════════
+  // STATE
+  // ══════════════════════════════════════
   const STATE = {
-    nodes: {
-      1: false,
-      2: false,
-      3: false,
-      4: false,
-      5: false,
-      6: false
-    },
+    nodes: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false },
     currentNode: null,
-    modalData: {
-      1: {},
-      2: {},
-      3: {},
-      4: {},
-      5: {},
-      6: {}
-    }
+    modalData: { 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {} },
+    completedCount: 0
   };
 
-  // ──────────────────────────────────────
-  // NODE CONFIGURATION
-  // ──────────────────────────────────────
   const NODE_CONFIG = {
     1: { title: 'OPERADOR OOC', template: buildModal1 },
     2: { title: 'IDENTIDAD & LORE IC', template: buildModal2 },
@@ -41,102 +25,216 @@
     6: { title: 'DIPLOMACIA & NORMAS', template: buildModal6 }
   };
 
-  // ──────────────────────────────────────
-  // DOM REFERENCES
-  // ──────────────────────────────────────
-  const $overlay = document.getElementById('modalOverlay');
-  const $container = document.getElementById('modalContainer');
-  const $modalTitle = document.getElementById('modalTitle');
-  const $modalBody = document.getElementById('modalBody');
-  const $modalClose = document.getElementById('modalClose');
-  const $btnSave = document.getElementById('btnSave');
-  const $btnTransmit = document.getElementById('btnTransmit');
-  const $transmitLock = document.getElementById('transmitLock');
-  const $headerCounter = document.getElementById('headerCounter');
-  const $successOverlay = document.getElementById('successOverlay');
+  // ══════════════════════════════════════
+  // DOM REFS
+  // ══════════════════════════════════════
+  const $ = id => document.getElementById(id);
+  const $overlay = $('modalOverlay');
+  const $modalTitle = $('modalTitle');
+  const $modalBody = $('modalBody');
+  const $modalClose = $('modalClose');
+  const $btnSave = $('btnSave');
+  const $btnTransmit = $('btnTransmit');
+  const $headerCounter = $('headerCounter');
+  const $successOverlay = $('successOverlay');
+  const $holoCore = $('holoCore');
+  const $holoStatus = $('holoStatus');
+  const $holoHub = $('holoHub');
+  const $beamLayer = $('beamLayer');
+  const $climaxContainer = $('climaxContainer');
+  const $scene = $('scene');
+  const $canvas = $('particleCanvas');
 
-  // ──────────────────────────────────────
+  // ══════════════════════════════════════
   // INIT
-  // ──────────────────────────────────────
+  // ══════════════════════════════════════
   function init() {
-    // Bind node clicks
-    document.querySelectorAll('.node-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const nodeId = parseInt(card.dataset.node);
+    positionOrbitalPlates();
+    initParticles();
+    initLevitation();
+    initTilt();
+    bindPlateClicks();
+    bindModal();
+    animateEntrance();
+  }
+
+  // ══════════════════════════════════════
+  // ORBITAL PLATE POSITIONING
+  // ══════════════════════════════════════
+  function positionOrbitalPlates() {
+    const plates = document.querySelectorAll('.orbital-plate');
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const cx = vw / 2;
+    const cy = vh / 2 - 20;
+
+    // Semicircle arc — plates distributed from -70° to 70° below the hologram
+    const radiusX = Math.min(vw * 0.4, 500);
+    const radiusY = Math.min(vh * 0.32, 280);
+    const startAngle = -80;
+    const endAngle = 80;
+    const count = plates.length;
+
+    plates.forEach((plate, i) => {
+      const angleDeg = startAngle + (endAngle - startAngle) * (i / (count - 1));
+      const angleRad = (angleDeg * Math.PI) / 180;
+
+      const x = cx + radiusX * Math.sin(angleRad) - plate.offsetWidth / 2;
+      const y = cy + radiusY * Math.cos(angleRad) - plate.offsetHeight / 2 + 60;
+
+      plate.style.left = `${x}px`;
+      plate.style.top = `${y}px`;
+      plate._baseX = x;
+      plate._baseY = y;
+      plate._angle = angleDeg;
+    });
+
+    // Reposition on resize
+    window.addEventListener('resize', () => {
+      positionOrbitalPlates();
+    });
+  }
+
+  // ══════════════════════════════════════
+  // PARTICLE SYSTEM (Floating Embers)
+  // ══════════════════════════════════════
+  function initParticles() {
+    const ctx = $canvas.getContext('2d');
+    let w, h;
+    const particles = [];
+    const PARTICLE_COUNT = 40;
+
+    function resize() {
+      w = $canvas.width = window.innerWidth;
+      h = $canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Create particles
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: -(Math.random() * 0.4 + 0.15), // float upward
+        size: Math.random() * 2 + 0.5,
+        opacity: Math.random() * 0.4 + 0.1,
+        flicker: Math.random() * Math.PI * 2
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.flicker += 0.02;
+
+        // Wrap around
+        if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+
+        const alpha = p.opacity * (0.5 + 0.5 * Math.sin(p.flicker));
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(230, 57, 70, ${alpha})`;
+        ctx.fill();
+
+        // Subtle glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(230, 57, 70, ${alpha * 0.15})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ══════════════════════════════════════
+  // LEVITATION ANIMATION
+  // ══════════════════════════════════════
+  function initLevitation() {
+    if (typeof gsap === 'undefined') return;
+
+    document.querySelectorAll('.orbital-plate').forEach((plate, i) => {
+      gsap.to(plate, {
+        y: '+=8',
+        duration: 2.5 + i * 0.3,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        delay: i * 0.15
+      });
+    });
+  }
+
+  // ══════════════════════════════════════
+  // 3D TILT ON HOVER
+  // ══════════════════════════════════════
+  function initTilt() {
+    document.querySelectorAll('.orbital-plate').forEach(plate => {
+      plate.addEventListener('mousemove', (e) => {
+        const rect = plate.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width - 0.5;
+        const py = (e.clientY - rect.top) / rect.height - 0.5;
+
+        if (typeof gsap !== 'undefined') {
+          gsap.to(plate, {
+            rotateY: px * 18,
+            rotateX: -py * 12,
+            duration: 0.3,
+            ease: 'power2.out',
+            overwrite: 'auto'
+          });
+        }
+      });
+
+      plate.addEventListener('mouseleave', () => {
+        if (typeof gsap !== 'undefined') {
+          gsap.to(plate, {
+            rotateY: 0, rotateX: 0,
+            duration: 0.5, ease: 'power2.out',
+            overwrite: 'auto'
+          });
+        }
+      });
+    });
+  }
+
+  // ══════════════════════════════════════
+  // PLATE CLICKS + MODAL
+  // ══════════════════════════════════════
+  function bindPlateClicks() {
+    document.querySelectorAll('.orbital-plate').forEach(plate => {
+      plate.addEventListener('click', () => {
+        const nodeId = parseInt(plate.dataset.node);
         openModal(nodeId);
       });
     });
+  }
 
-    // Close modal
+  function bindModal() {
     $modalClose.addEventListener('click', closeModal);
     $overlay.addEventListener('click', (e) => {
       if (e.target === $overlay) closeModal();
     });
-
-    // Escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && $overlay.classList.contains('active')) {
-        closeModal();
-      }
+      if (e.key === 'Escape' && $overlay.classList.contains('active')) closeModal();
     });
-
-    // Save button
     $btnSave.addEventListener('click', handleSave);
-
-    // Transmit button (Sprint 5)
     $btnTransmit.addEventListener('click', handleTransmit);
-
-    // Entrance animation
-    animateEntrance();
   }
 
-  // ──────────────────────────────────────
-  // ENTRANCE ANIMATION
-  // ──────────────────────────────────────
-  function animateEntrance() {
-    if (typeof gsap === 'undefined') return;
-
-    gsap.fromTo('.dash-header',
-      { opacity: 0, y: -20 },
-      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', clearProps: 'all' }
-    );
-
-    gsap.fromTo('.node-card',
-      { opacity: 0, y: 30, scale: 0.95 },
-      {
-        opacity: 1, y: 0, scale: 1,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: 'power3.out',
-        delay: 0.2,
-        onComplete: function () {
-          // Guarantee all cards are visible after animation completes
-          document.querySelectorAll('.node-card').forEach(card => {
-            card.style.opacity = '1';
-            card.style.transform = '';
-          });
-        }
-      }
-    );
-
-    gsap.fromTo('.dash-footer',
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.7, clearProps: 'all' }
-    );
-  }
-
-  // ──────────────────────────────────────
-  // MODAL OPEN / CLOSE
-  // ──────────────────────────────────────
   function openModal(nodeId) {
     STATE.currentNode = nodeId;
     const config = NODE_CONFIG[nodeId];
-
     $modalTitle.textContent = config.title;
     $modalBody.innerHTML = '';
     $modalBody.appendChild(config.template(nodeId));
 
-    // Activate modal with slight delay for animation
     requestAnimationFrame(() => {
       $overlay.classList.add('active');
     });
@@ -147,93 +245,244 @@
     STATE.currentNode = null;
   }
 
-  // ──────────────────────────────────────
+  // ══════════════════════════════════════
   // SAVE HANDLER
-  // ──────────────────────────────────────
+  // ══════════════════════════════════════
   function handleSave() {
     const nodeId = STATE.currentNode;
     if (!nodeId) return;
-
-    // Validate the current modal
-    const isValid = validateModal(nodeId);
-    if (!isValid) return;
-
-    // Collect data
+    if (!validateModal(nodeId)) return;
     collectModalData(nodeId);
 
-    // Mark node verified
     STATE.nodes[nodeId] = true;
-    updateNodeUI(nodeId);
-    updateHeaderCounter();
-    checkAllVerified();
+    STATE.completedCount = Object.values(STATE.nodes).filter(Boolean).length;
 
-    // Close modal
+    updatePlateUI(nodeId);
+    updateHeader();
+    fireEnergyBeam(nodeId);
+    evolveHologram();
     closeModal();
+
+    if (STATE.completedCount === 6) {
+      setTimeout(triggerClimax, 1200);
+    }
   }
 
-  // ──────────────────────────────────────
-  // NODE UI UPDATE
-  // ──────────────────────────────────────
-  function updateNodeUI(nodeId) {
-    const card = document.getElementById(`node-${nodeId}`);
-    const statusEl = document.getElementById(`status-${nodeId}`);
+  // ══════════════════════════════════════
+  // PLATE UI UPDATE
+  // ══════════════════════════════════════
+  function updatePlateUI(nodeId) {
+    const plate = $(`node-${nodeId}`);
+    const status = $(`status-${nodeId}`);
+    plate.classList.add('verified');
+    status.querySelector('.ps-icon').textContent = '✓';
+    status.querySelector('.ps-text').textContent = 'VERIFICADO';
 
-    card.classList.add('verified');
-    statusEl.querySelector('.status-icon').textContent = '✓';
-    statusEl.querySelector('.status-label').textContent = 'VERIFICADO';
-
-    // Micro-animation
     if (typeof gsap !== 'undefined') {
-      gsap.fromTo(card, { scale: 0.97 }, {
-        scale: 1, duration: 0.4, ease: 'back.out(1.7)'
+      gsap.fromTo(plate, { scale: 0.95 }, {
+        scale: 1, duration: 0.5, ease: 'back.out(1.7)'
       });
     }
   }
 
-  function updateHeaderCounter() {
-    const count = Object.values(STATE.nodes).filter(Boolean).length;
-    $headerCounter.textContent = `${count} / 6`;
+  function updateHeader() {
+    $headerCounter.textContent = `${STATE.completedCount} / 6`;
   }
 
-  // ──────────────────────────────────────
-  // CHECK ALL VERIFIED → UNLOCK TRANSMIT
-  // ──────────────────────────────────────
-  function checkAllVerified() {
-    const allDone = Object.values(STATE.nodes).every(v => v === true);
-    if (!allDone) return;
+  // ══════════════════════════════════════
+  // ENERGY BEAM
+  // ══════════════════════════════════════
+  function fireEnergyBeam(nodeId) {
+    const plate = $(`node-${nodeId}`);
+    const plateRect = plate.getBoundingClientRect();
+    const hubRect = $holoHub.getBoundingClientRect();
 
-    // Pulse all nodes
-    document.querySelectorAll('.node-card').forEach(card => {
-      card.classList.add('pulse-energy');
+    const x1 = plateRect.left + plateRect.width / 2;
+    const y1 = plateRect.top + plateRect.height / 2;
+    const x2 = hubRect.left + hubRect.width / 2;
+    const y2 = hubRect.top + hubRect.height / 2;
+
+    // Scale to viewBox
+    const svgRect = $beamLayer.getBoundingClientRect();
+    const sx1 = (x1 / svgRect.width) * 1920;
+    const sy1 = (y1 / svgRect.height) * 1080;
+    const sx2 = (x2 / svgRect.width) * 1920;
+    const sy2 = (y2 / svgRect.height) * 1080;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', sx1);
+    line.setAttribute('y1', sy1);
+    line.setAttribute('x2', sx2);
+    line.setAttribute('y2', sy2);
+    line.classList.add('energy-beam');
+    $beamLayer.appendChild(line);
+
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo(line,
+        { strokeDashoffset: 800 },
+        {
+          strokeDashoffset: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          onComplete: () => {
+            // Flash hologram core
+            gsap.fromTo($holoCore.querySelector('.holo-inner-core'),
+              { scale: 1.5, boxShadow: '0 0 60px #E63946, 0 0 120px rgba(230,57,70,0.6)' },
+              { scale: 1, boxShadow: '0 0 20px #E63946, 0 0 40px rgba(230,57,70,0.3)', duration: 0.5, ease: 'power2.out' }
+            );
+            // Fade beam
+            gsap.to(line, { opacity: 0, duration: 0.8, delay: 0.3, onComplete: () => line.remove() });
+          }
+        }
+      );
+    }
+  }
+
+  // ══════════════════════════════════════
+  // HOLOGRAM EVOLUTION
+  // ══════════════════════════════════════
+  function evolveHologram() {
+    const count = STATE.completedCount;
+
+    // Power up classes
+    $holoCore.className = 'holo-core';
+    if (count >= 1) $holoCore.classList.add(`power-${Math.min(count, 5)}`);
+
+    // Status text
+    const statusTexts = {
+      0: '[ ESTADO: DOSSIER EN BLANCO ]',
+      1: '[ ESTADO: RECOPILANDO DATOS ]',
+      2: '[ ESTADO: DATOS PARCIALES ]',
+      3: '[ ESTADO: ANALIZANDO ECONOMÍA ]',
+      4: '[ ESTADO: MAPEANDO TERRITORIO ]',
+      5: '[ ESTADO: ESCUADRA REGISTRADA ]',
+      6: '[ ESTADO: DOSSIER COMPLETO ]'
+    };
+    $holoStatus.textContent = statusTexts[count] || statusTexts[0];
+
+    // Activate evolution overlays
+    if (count >= 3) $('holoEvoGrid').classList.add('active');
+    if (count >= 5) {
+      const nodesContainer = $('holoEvoNodes');
+      nodesContainer.classList.add('active');
+      // Add orbiting light dots
+      nodesContainer.innerHTML = '';
+      for (let i = 0; i < Math.min(count, 6); i++) {
+        const dot = document.createElement('div');
+        dot.style.cssText = `
+          position: absolute; width: 4px; height: 4px;
+          background: #E63946; border-radius: 50%;
+          box-shadow: 0 0 8px #E63946;
+          top: 50%; left: 50%;
+          animation: orbitDot ${3 + i * 0.5}s linear infinite;
+          transform-origin: ${30 + i * 8}px 0;
+        `;
+        nodesContainer.appendChild(dot);
+      }
+    }
+
+    // Speed up rotation
+    if (typeof gsap !== 'undefined' && count >= 3) {
+      const rings = $holoCore.querySelectorAll('.holo-ring');
+      rings.forEach(ring => {
+        ring.style.animationDuration = `${Math.max(3, 8 - count)}s`;
+      });
+    }
+  }
+
+  // ══════════════════════════════════════
+  // CLIMAX SEQUENCE
+  // ══════════════════════════════════════
+  function triggerClimax() {
+    if (typeof gsap === 'undefined') {
+      $climaxContainer.classList.add('active');
+      $btnTransmit.disabled = false;
+      return;
+    }
+
+    const tl = gsap.timeline();
+
+    // 1. All plates pulse
+    tl.to('.orbital-plate.verified', {
+      boxShadow: '0 0 40px rgba(230,57,70,0.4), 0 0 80px rgba(230,57,70,0.2)',
+      duration: 0.3,
+      stagger: 0.08,
+      yoyo: true,
+      repeat: 2
     });
 
-    // Reveal transmit button
-    $transmitLock.classList.add('hidden');
-    $btnTransmit.disabled = false;
+    // 2. Hologram overload flash
+    tl.to($holoCore, {
+      scale: 1.5,
+      duration: 0.3,
+      ease: 'power2.in'
+    }, '+=0.2');
 
-    if (typeof gsap !== 'undefined') {
-      gsap.to($btnTransmit, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: 'power3.out',
-        delay: 0.3,
-        onStart: () => $btnTransmit.classList.add('active')
-      });
-    } else {
-      $btnTransmit.classList.add('active');
-    }
+    tl.to($holoCore, {
+      opacity: 0,
+      scale: 2,
+      duration: 0.4,
+      ease: 'power2.out'
+    });
 
-    // Update header
-    document.querySelector('.header-status-text').textContent = 'DOSSIER COMPLETO';
+    // 3. Hide hologram + plates
+    tl.to([$holoHub, '.orbital-plate'], {
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power2.out'
+    });
+
+    // 4. Materialize TRANSMIT button
+    tl.add(() => {
+      $climaxContainer.classList.add('active');
+      $btnTransmit.disabled = false;
+      $('hudStatusText').textContent = 'DOSSIER COMPLETO';
+    });
+
+    tl.fromTo($btnTransmit,
+      { opacity: 0, scale: 0.5, y: 20 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: 'back.out(1.7)' }
+    );
   }
 
   // ══════════════════════════════════════
-  // MODAL TEMPLATES (Sprint 2-4)
+  // ENTRANCE ANIMATION
+  // ══════════════════════════════════════
+  function animateEntrance() {
+    if (typeof gsap === 'undefined') return;
+
+    gsap.fromTo('.hud-header',
+      { opacity: 0, y: -20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', clearProps: 'all' }
+    );
+
+    gsap.fromTo('.holo-hub',
+      { opacity: 0, scale: 0.5 },
+      { opacity: 1, scale: 1, duration: 1, ease: 'power3.out', delay: 0.1, clearProps: 'opacity,scale' }
+    );
+
+    gsap.fromTo('.orbital-plate',
+      { opacity: 0, scale: 0.8 },
+      {
+        opacity: 1, scale: 1,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'back.out(1.4)',
+        delay: 0.3,
+        clearProps: 'opacity,scale',
+        onComplete: () => {
+          document.querySelectorAll('.orbital-plate').forEach(p => {
+            p.style.opacity = '1';
+          });
+        }
+      }
+    );
+  }
+
+  // ══════════════════════════════════════
+  // MODAL TEMPLATES (Preserved)
   // ══════════════════════════════════════
 
-  // ── MODAL 1: OPERADOR OOC ──
   function buildModal1() {
     const frag = document.createElement('div');
     frag.innerHTML = `
@@ -258,7 +507,6 @@
           <textarea class="gang-textarea" id="m1-experience" placeholder="Describe tu experiencia previa en servidores de RP..." required></textarea>
         </div>
       </div>
-
       <div class="modal-section">
         <div class="modal-section-label">HISTORIAL DE SANCIONES</div>
         <div class="sanctions-toggle-wrapper" id="sanctionsWrapper">
@@ -275,37 +523,28 @@
         </div>
       </div>
     `;
-
-    // Bind toggle
     setTimeout(() => {
       const toggle = document.getElementById('sanctionsToggle');
       const wrapper = document.getElementById('sanctionsWrapper');
       const reveal = document.getElementById('sanctionsReveal');
       const label = document.getElementById('sanctionsLabel');
-
       wrapper.addEventListener('click', () => {
         toggle.classList.toggle('active');
-        const isSanctioned = toggle.classList.contains('active');
-        reveal.classList.toggle('visible', isSanctioned);
-        label.textContent = isSanctioned ? 'SANCIONADO' : 'HISTORIAL LIMPIO';
+        const active = toggle.classList.contains('active');
+        reveal.classList.toggle('visible', active);
+        label.textContent = active ? 'SANCIONADO' : 'HISTORIAL LIMPIO';
       });
     }, 50);
-
     return frag;
   }
 
-  // ── MODAL 2: IDENTIDAD & LORE IC ──
   function buildModal2() {
     const frag = document.createElement('div');
-    const gangTypes = [
-      { icon: '🔫', label: 'Pandilla' },
-      { icon: '🎩', label: 'Mafia' },
-      { icon: '💀', label: 'Cártel' },
-      { icon: '🏍️', label: 'MC' },
-      { icon: '🕸️', label: 'Red Criminal' },
-      { icon: '⬡', label: 'Otro' }
+    const types = [
+      { icon: '🔫', label: 'Pandilla' }, { icon: '🎩', label: 'Mafia' },
+      { icon: '💀', label: 'Cártel' }, { icon: '🏍️', label: 'MC' },
+      { icon: '🕸️', label: 'Red Criminal' }, { icon: '⬡', label: 'Otro' }
     ];
-
     frag.innerHTML = `
       <div class="modal-section">
         <div class="modal-section-label">IDENTIDAD DE LA ORGANIZACIÓN</div>
@@ -316,19 +555,12 @@
           </div>
         </div>
       </div>
-
       <div class="modal-section">
         <div class="modal-section-label">TIPOLOGÍA CRIMINAL</div>
         <div class="holo-grid" id="holoGrid">
-          ${gangTypes.map(t => `
-            <div class="holo-card" data-type="${t.label}">
-              <div class="holo-card-icon">${t.icon}</div>
-              <div class="holo-card-label">${t.label}</div>
-            </div>
-          `).join('')}
+          ${types.map(t => `<div class="holo-card" data-type="${t.label}"><div class="holo-card-icon">${t.icon}</div><div class="holo-card-label">${t.label}</div></div>`).join('')}
         </div>
       </div>
-
       <div class="modal-section">
         <div class="gang-form-grid">
           <div class="gang-input-group">
@@ -341,24 +573,20 @@
           </div>
         </div>
       </div>
-
       <div class="modal-section">
         <div class="gang-input-group">
           <label class="gang-label">Vestimenta y Rasgos Identificativos</label>
           <input class="gang-input" type="text" id="m2-appearance" placeholder="Colores, estilo, señas de identidad..." required>
         </div>
       </div>
-
       <div class="modal-section">
         <div class="modal-section-label">MANIFIESTO REDACTADO</div>
-        <p style="font-size: 11px; color: var(--color-text-dim); margin-bottom: 10px; letter-spacing: 0.5px;">
-          Escribe la historia y lore de tu organización. Las palabras clave serán detectadas por el sistema.
+        <p style="font-size:11px;color:var(--color-text-dim);margin-bottom:10px;letter-spacing:0.5px">
+          Escribe la historia y lore de tu organización. Las palabras clave serán detectadas.
         </p>
         <div class="manifesto-editor" contenteditable="true" id="manifestoEditor" data-placeholder="Escribe aquí el lore de tu organización..."></div>
       </div>
     `;
-
-    // Bind holographic cards
     setTimeout(() => {
       const grid = document.getElementById('holoGrid');
       if (!grid) return;
@@ -368,51 +596,32 @@
           card.classList.add('selected');
         });
       });
-
-      // Keyword scanner
       const editor = document.getElementById('manifestoEditor');
       if (editor) {
-        const KEYWORDS = /\b(mafia|sangre|drogas|armas|territorio|dinero|c[aá]rtel|muerte)\b/gi;
-
+        const KW = /\b(mafia|sangre|drogas|armas|territorio|dinero|c[aá]rtel|muerte)\b/gi;
         editor.addEventListener('input', () => {
           const sel = window.getSelection();
-          const range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
-
-          // Get raw text
           const text = editor.innerText;
-
-          // Rebuild with highlights
-          const highlighted = text.replace(KEYWORDS, '<span class="keyword-glow">$1</span>');
-
-          if (highlighted !== editor.innerHTML) {
-            editor.innerHTML = highlighted;
-            // Restore cursor to end
-            if (range) {
-              const newRange = document.createRange();
-              newRange.selectNodeContents(editor);
-              newRange.collapse(false);
-              sel.removeAllRanges();
-              sel.addRange(newRange);
-            }
+          const hl = text.replace(KW, '<span class="keyword-glow">$1</span>');
+          if (hl !== editor.innerHTML) {
+            editor.innerHTML = hl;
+            const r = document.createRange();
+            r.selectNodeContents(editor); r.collapse(false);
+            sel.removeAllRanges(); sel.addRange(r);
           }
         });
       }
     }, 50);
-
     return frag;
   }
 
-  // ── MODAL 3: LOGÍSTICA & ECONOMÍA ──
   function buildModal3() {
     const frag = document.createElement('div');
     const sliders = [
-      { id: 'drugs', label: 'Narcotráfico' },
-      { id: 'weapons', label: 'Tráfico de Armas' },
-      { id: 'extortion', label: 'Extorsión' },
-      { id: 'robbery', label: 'Robos' },
+      { id: 'drugs', label: 'Narcotráfico' }, { id: 'weapons', label: 'Tráfico de Armas' },
+      { id: 'extortion', label: 'Extorsión' }, { id: 'robbery', label: 'Robos' },
       { id: 'laundering', label: 'Blanqueo de Capitales' }
     ];
-
     frag.innerHTML = `
       <div class="modal-section">
         <div class="modal-section-label">DISTRIBUCIÓN DE RECURSOS</div>
@@ -420,18 +629,16 @@
           <span class="points-label">Puntos Disponibles</span>
           <span class="points-value" id="pointsValue">100</span>
         </div>
-
         ${sliders.map(s => `
           <div class="slider-group">
             <div class="slider-header">
               <span class="slider-label">${s.label}</span>
               <span class="slider-value" id="val-${s.id}">0</span>
             </div>
-            <input class="gang-slider" type="range" min="0" max="100" value="0" id="slider-${s.id}" data-slider="${s.id}">
+            <input class="gang-slider" type="range" min="0" max="100" value="0" id="slider-${s.id}">
           </div>
         `).join('')}
       </div>
-
       <div class="modal-section">
         <div class="gang-input-group">
           <label class="gang-label">Negocio Tapadera / Actividad Legal</label>
@@ -439,93 +646,50 @@
         </div>
       </div>
     `;
-
-    // Bind 100-point constraint algorithm
     setTimeout(() => {
-      const sliderEls = {};
-      const valueEls = {};
-      const sliderIds = ['drugs', 'weapons', 'extortion', 'robbery', 'laundering'];
-      const $pointsValue = document.getElementById('pointsValue');
-
-      sliderIds.forEach(id => {
-        sliderEls[id] = document.getElementById(`slider-${id}`);
-        valueEls[id] = document.getElementById(`val-${id}`);
-      });
-
-      function getTotal() {
-        return sliderIds.reduce((sum, id) => sum + parseInt(sliderEls[id].value), 0);
-      }
-
-      function updateDisplay() {
-        const total = getTotal();
-        const remaining = 100 - total;
-        $pointsValue.textContent = remaining;
-        $pointsValue.classList.toggle('depleted', remaining <= 0);
-        sliderIds.forEach(id => {
-          valueEls[id].textContent = sliderEls[id].value;
-          // Update track fill via inline background
-          const pct = sliderEls[id].value;
-          sliderEls[id].style.background = `linear-gradient(90deg, var(--color-accent) ${pct}%, rgba(255,255,255,0.08) ${pct}%)`;
+      const els = {}, vals = {};
+      const ids = ['drugs','weapons','extortion','robbery','laundering'];
+      const pv = document.getElementById('pointsValue');
+      ids.forEach(id => { els[id] = document.getElementById(`slider-${id}`); vals[id] = document.getElementById(`val-${id}`); });
+      function upd() {
+        const total = ids.reduce((s,id) => s + parseInt(els[id].value), 0);
+        pv.textContent = 100 - total;
+        pv.classList.toggle('depleted', 100 - total <= 0);
+        ids.forEach(id => {
+          vals[id].textContent = els[id].value;
+          const pct = els[id].value;
+          els[id].style.background = `linear-gradient(90deg, var(--color-accent) ${pct}%, rgba(255,255,255,0.08) ${pct}%)`;
         });
       }
-
-      sliderIds.forEach(id => {
-        sliderEls[id].addEventListener('input', () => {
-          const currentValue = parseInt(sliderEls[id].value);
-          const otherIds = sliderIds.filter(s => s !== id);
-          const othersTotal = otherIds.reduce((sum, s) => sum + parseInt(sliderEls[s].value), 0);
-
-          if (currentValue + othersTotal > 100) {
-            const excess = (currentValue + othersTotal) - 100;
-            // Proportionally reduce others
-            let reduced = 0;
-            const otherValues = otherIds.map(s => ({ id: s, val: parseInt(sliderEls[s].value) }));
-            const otherSum = otherValues.reduce((s, o) => s + o.val, 0);
-
-            if (otherSum > 0) {
-              otherValues.forEach(o => {
-                const reduction = Math.round((o.val / otherSum) * excess);
-                const newVal = Math.max(0, o.val - reduction);
-                sliderEls[o.id].value = newVal;
-                reduced += o.val - newVal;
-              });
-
-              // Handle rounding errors
-              if (reduced < excess) {
-                for (const o of otherValues) {
-                  const diff = excess - reduced;
-                  if (diff <= 0) break;
-                  const cv = parseInt(sliderEls[o.id].value);
-                  const reduce = Math.min(cv, diff);
-                  sliderEls[o.id].value = cv - reduce;
-                  reduced += reduce;
-                }
-              }
-            } else {
-              // All others are 0, cap current slider
-              sliderEls[id].value = 100;
-            }
+      ids.forEach(id => {
+        els[id].addEventListener('input', () => {
+          const cv = parseInt(els[id].value);
+          const others = ids.filter(s => s !== id);
+          const ot = others.reduce((s,s2) => s + parseInt(els[s2].value), 0);
+          if (cv + ot > 100) {
+            const excess = cv + ot - 100;
+            const ov = others.map(s => ({ id: s, val: parseInt(els[s].value) }));
+            const os = ov.reduce((s,o) => s + o.val, 0);
+            if (os > 0) {
+              let rd = 0;
+              ov.forEach(o => { const r = Math.round((o.val/os)*excess); const nv = Math.max(0,o.val-r); els[o.id].value = nv; rd += o.val - nv; });
+              if (rd < excess) { for (const o of ov) { const d = excess-rd; if(d<=0) break; const c = parseInt(els[o.id].value); const r = Math.min(c,d); els[o.id].value = c-r; rd += r; } }
+            } else { els[id].value = 100; }
           }
-
-          updateDisplay();
+          upd();
         });
       });
-
-      updateDisplay();
+      upd();
     }, 50);
-
     return frag;
   }
 
-  // ── MODAL 4: MAPA TÁCTICO ──
   function buildModal4() {
     const frag = document.createElement('div');
     frag.innerHTML = `
       <div class="modal-section">
         <div class="modal-section-label">TERRITORIO DE OPERACIÓN</div>
-        <div class="map-container" id="mapContainer">
-          <!-- Pin injected dynamically -->
-        </div>
+        <div class="map-container" id="mapContainer"></div>
         <div class="gang-form-grid">
           <div class="gang-input-group">
             <label class="gang-label">Nombre de la Zona Reclamada</label>
@@ -538,51 +702,26 @@
         </div>
       </div>
     `;
-
-    // Bind map click
     setTimeout(() => {
       const map = document.getElementById('mapContainer');
-      const coordsInput = document.getElementById('m4-coords');
+      const ci = document.getElementById('m4-coords');
       if (!map) return;
-
       map.addEventListener('click', (e) => {
-        const rect = map.getBoundingClientRect();
-        const xPct = ((e.clientX - rect.left) / rect.width) * 100;
-        const yPct = ((e.clientY - rect.top) / rect.height) * 100;
-
-        // Remove existing pin
-        const oldPin = map.querySelector('.map-pin');
-        if (oldPin) oldPin.remove();
-
-        // Create new pin
+        const r = map.getBoundingClientRect();
+        const xp = ((e.clientX-r.left)/r.width)*100;
+        const yp = ((e.clientY-r.top)/r.height)*100;
+        const old = map.querySelector('.map-pin'); if (old) old.remove();
         const pin = document.createElement('div');
-        pin.className = 'map-pin';
-        pin.style.left = `${xPct}%`;
-        pin.style.top = `${yPct}%`;
-        pin.innerHTML = `
-          <div class="map-pin-core"></div>
-          <div class="map-pin-ring"></div>
-        `;
+        pin.className = 'map-pin'; pin.style.left = `${xp}%`; pin.style.top = `${yp}%`;
+        pin.innerHTML = `<div class="map-pin-core"></div><div class="map-pin-ring"></div>`;
         map.appendChild(pin);
-
-        // Calculate fake GTA coords (-4000 to +4000)
-        const lat = ((xPct / 100) * 8000 - 4000).toFixed(2);
-        const lng = ((yPct / 100) * -8000 + 4000).toFixed(2);
-        coordsInput.value = `[ LAT: ${lat} | LNG: ${lng} ]`;
-
-        // GSAP pin animation
-        if (typeof gsap !== 'undefined') {
-          gsap.fromTo(pin, { scale: 0, opacity: 0 }, {
-            scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2)'
-          });
-        }
+        ci.value = `[ LAT: ${((xp/100)*8000-4000).toFixed(2)} | LNG: ${((yp/100)*-8000+4000).toFixed(2)} ]`;
+        if (typeof gsap !== 'undefined') gsap.fromTo(pin, { scale:0, opacity:0 }, { scale:1, opacity:1, duration:0.3, ease:'back.out(2)' });
       });
     }, 50);
-
     return frag;
   }
 
-  // ── MODAL 5: ESCUADRA / ROSTER ──
   function buildModal5() {
     const frag = document.createElement('div');
     frag.innerHTML = `
@@ -595,82 +734,41 @@
       <div class="modal-section">
         <div class="modal-section-label">MIEMBROS DEL ESCUADRÓN</div>
         <div class="roster-container" id="rosterContainer">
-          <!-- Leader card (non-removable) -->
           <div class="roster-card" data-roster-id="1">
-            <div class="roster-card-header">
-              <span class="roster-card-tag">LÍDER — #1</span>
-            </div>
-            <div class="gang-input-group">
-              <label class="gang-label">Nombre IC</label>
-              <input class="gang-input roster-name" type="text" placeholder="Nombre en personaje" required>
-            </div>
-            <div class="gang-input-group">
-              <label class="gang-label">Discord OOC</label>
-              <input class="gang-input roster-discord" type="text" placeholder="usuario#0000" required>
-            </div>
-            <div class="gang-input-group">
-              <label class="gang-label">Rango</label>
-              <input class="gang-input roster-rank" type="text" value="Líder" readonly>
-            </div>
+            <div class="roster-card-header"><span class="roster-card-tag">LÍDER — #1</span></div>
+            <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje" required></div>
+            <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000" required></div>
+            <div class="gang-input-group"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" value="Líder" readonly></div>
           </div>
         </div>
-        <button class="btn-add-operative" id="btnAddOperative" type="button">
-          <span>+</span> AÑADIR OPERATIVO
-        </button>
+        <button class="btn-add-operative" id="btnAddOperative" type="button"><span>+</span> AÑADIR OPERATIVO</button>
       </div>
     `;
-
     setTimeout(() => {
       const container = document.getElementById('rosterContainer');
       const btnAdd = document.getElementById('btnAddOperative');
-      let rosterCount = 1;
-
+      let rc = 1;
       if (!btnAdd) return;
-
       btnAdd.addEventListener('click', () => {
-        rosterCount++;
+        rc++;
         const card = document.createElement('div');
-        card.className = 'roster-card';
-        card.dataset.rosterId = rosterCount;
+        card.className = 'roster-card'; card.dataset.rosterId = rc;
         card.innerHTML = `
-          <div class="roster-card-header">
-            <span class="roster-card-tag">OPERATIVO — #${rosterCount}</span>
-            <button class="roster-card-remove" type="button">✕</button>
-          </div>
-          <div class="gang-input-group">
-            <label class="gang-label">Nombre IC</label>
-            <input class="gang-input roster-name" type="text" placeholder="Nombre en personaje">
-          </div>
-          <div class="gang-input-group">
-            <label class="gang-label">Discord OOC</label>
-            <input class="gang-input roster-discord" type="text" placeholder="usuario#0000">
-          </div>
-          <div class="gang-input-group">
-            <label class="gang-label">Rango</label>
-            <input class="gang-input roster-rank" type="text" placeholder="Soldado, Sicario, etc.">
-          </div>
+          <div class="roster-card-header"><span class="roster-card-tag">OPERATIVO — #${rc}</span><button class="roster-card-remove" type="button">✕</button></div>
+          <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje"></div>
+          <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000"></div>
+          <div class="gang-input-group"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" placeholder="Soldado, Sicario, etc."></div>
         `;
-
-        // Bind remove
         card.querySelector('.roster-card-remove').addEventListener('click', () => {
-          if (typeof gsap !== 'undefined') {
-            gsap.to(card, {
-              opacity: 0, scale: 0.9, height: 0, duration: 0.3, ease: 'power2.in',
-              onComplete: () => card.remove()
-            });
-          } else {
-            card.remove();
-          }
+          if (typeof gsap !== 'undefined') gsap.to(card, { opacity:0, scale:0.9, height:0, duration:0.3, ease:'power2.in', onComplete:()=>card.remove() });
+          else card.remove();
         });
-
         container.appendChild(card);
       });
     }, 50);
-
     return frag;
   }
 
-  // ── MODAL 6: DIPLOMACIA & NORMAS ──
   function buildModal6() {
     const frag = document.createElement('div');
     const rules = [
@@ -679,7 +777,6 @@
       'No Ayudas Iniciales: Ningún miembro del staff proporcionará ventajas iniciales a organizaciones nuevas.',
       'Aceptación de CK: Todos los miembros aceptan la posibilidad de Character Kill bajo circunstancias válidas de RP.'
     ];
-
     frag.innerHTML = `
       <div class="modal-section">
         <div class="gang-input-group">
@@ -687,18 +784,14 @@
           <textarea class="gang-textarea" id="m6-stance" placeholder="¿Sois aislacionistas, agresivos o buscáis alianzas? Explica tu postura diplomática..." required></textarea>
         </div>
       </div>
-
       <div class="modal-section">
         <div class="modal-section-label">PROTOCOLO DE SEGURIDAD — MANTÉN PULSADO PARA DESBLOQUEAR</div>
         <div class="rules-list" id="rulesList">
-          ${rules.map((r, i) => `
+          ${rules.map((r,i) => `
             <div class="rule-item">
               <span class="rule-text">${r}</span>
               <div class="seal-container" data-seal="${i}" id="seal-${i}">
-                <svg class="seal-svg" viewBox="0 0 40 40">
-                  <circle class="seal-bg" cx="20" cy="20" r="18"/>
-                  <circle class="seal-progress" cx="20" cy="20" r="18"/>
-                </svg>
+                <svg class="seal-svg" viewBox="0 0 40 40"><circle class="seal-bg" cx="20" cy="20" r="18"/><circle class="seal-progress" cx="20" cy="20" r="18"/></svg>
                 <span class="seal-icon">🔒</span>
               </div>
             </div>
@@ -706,341 +799,125 @@
         </div>
       </div>
     `;
-
-    // Bind hold-to-unlock seals
     setTimeout(() => {
-      const HOLD_DURATION = 1500; // 1.5 seconds
-      const circumference = 2 * Math.PI * 18; // ~113
-
+      const HD = 1500, circ = 2 * Math.PI * 18;
       document.querySelectorAll('.seal-container').forEach(seal => {
         if (seal.classList.contains('broken')) return;
-
-        let holdTimer = null;
-        let startTime = 0;
-        let animFrame = null;
-
-        const progressCircle = seal.querySelector('.seal-progress');
-        progressCircle.style.strokeDasharray = circumference;
-        progressCircle.style.strokeDashoffset = circumference;
-
-        function startHold() {
+        let af = null, st = 0;
+        const pc = seal.querySelector('.seal-progress');
+        pc.style.strokeDasharray = circ; pc.style.strokeDashoffset = circ;
+        function start() {
           if (seal.classList.contains('broken')) return;
-          startTime = Date.now();
-
-          function animate() {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / HOLD_DURATION, 1);
-            const offset = circumference * (1 - progress);
-            progressCircle.style.strokeDashoffset = offset;
-
-            if (progress >= 1) {
-              // Seal broken!
-              seal.classList.add('broken');
-              seal.querySelector('.seal-icon').textContent = '🔓';
-              return;
-            }
-
-            animFrame = requestAnimationFrame(animate);
-          }
-
-          animFrame = requestAnimationFrame(animate);
+          st = Date.now();
+          (function anim() {
+            const p = Math.min((Date.now()-st)/HD, 1);
+            pc.style.strokeDashoffset = circ * (1 - p);
+            if (p >= 1) { seal.classList.add('broken'); seal.querySelector('.seal-icon').textContent = '🔓'; return; }
+            af = requestAnimationFrame(anim);
+          })();
         }
-
-        function stopHold() {
-          if (seal.classList.contains('broken')) return;
-          cancelAnimationFrame(animFrame);
-          progressCircle.style.strokeDashoffset = circumference;
-        }
-
-        // Mouse events
-        seal.addEventListener('mousedown', startHold);
-        seal.addEventListener('mouseup', stopHold);
-        seal.addEventListener('mouseleave', stopHold);
-
-        // Touch events
-        seal.addEventListener('touchstart', (e) => {
-          e.preventDefault();
-          startHold();
-        });
-        seal.addEventListener('touchend', stopHold);
-        seal.addEventListener('touchcancel', stopHold);
+        function stop() { if (seal.classList.contains('broken')) return; cancelAnimationFrame(af); pc.style.strokeDashoffset = circ; }
+        seal.addEventListener('mousedown', start); seal.addEventListener('mouseup', stop); seal.addEventListener('mouseleave', stop);
+        seal.addEventListener('touchstart', e => { e.preventDefault(); start(); }); seal.addEventListener('touchend', stop); seal.addEventListener('touchcancel', stop);
       });
     }, 50);
-
     return frag;
   }
 
   // ══════════════════════════════════════
-  // VALIDATION PER MODAL
+  // VALIDATION
   // ══════════════════════════════════════
-  function validateModal(nodeId) {
-    switch (nodeId) {
-      case 1: return validateModal1();
-      case 2: return validateModal2();
-      case 3: return validateModal3();
-      case 4: return validateModal4();
-      case 5: return validateModal5();
-      case 6: return validateModal6();
+  function validateModal(n) {
+    switch(n) {
+      case 1: return v1(); case 2: return v2(); case 3: return v3();
+      case 4: return v4(); case 5: return v5(); case 6: return v6();
       default: return false;
     }
   }
+  function val(id) { const e = document.getElementById(id); return e ? e.value.trim() : ''; }
+  function shake() { if (typeof gsap !== 'undefined') gsap.fromTo($btnSave, { x:-6 }, { x:0, duration:0.4, ease:'elastic.out(1,0.3)' }); }
 
-  function validateModal1() {
-    const name = val('m1-name');
-    const age = val('m1-age');
-    const discord = val('m1-discord');
-    const exp = val('m1-experience');
-
-    if (!name || !age || !discord || !exp) {
-      shakeButton();
-      return false;
-    }
-
-    const toggle = document.getElementById('sanctionsToggle');
-    if (toggle && toggle.classList.contains('active')) {
-      const detail = val('m1-sanction-detail');
-      if (!detail) { shakeButton(); return false; }
-    }
-
+  function v1() {
+    if (!val('m1-name')||!val('m1-age')||!val('m1-discord')||!val('m1-experience')) { shake(); return false; }
+    const t = document.getElementById('sanctionsToggle');
+    if (t && t.classList.contains('active') && !val('m1-sanction-detail')) { shake(); return false; }
     return true;
   }
-
-  function validateModal2() {
-    const orgName = val('m2-org-name');
-    const selected = document.querySelector('.holo-card.selected');
-    const goalsS = val('m2-goals-short');
-    const goalsL = val('m2-goals-long');
-    const appearance = val('m2-appearance');
-    const manifesto = document.getElementById('manifestoEditor');
-    const lore = manifesto ? manifesto.innerText.trim() : '';
-
-    if (!orgName || !selected || !goalsS || !goalsL || !appearance || !lore) {
-      shakeButton();
-      return false;
-    }
+  function v2() {
+    const s = document.querySelector('.holo-card.selected');
+    const m = document.getElementById('manifestoEditor');
+    if (!val('m2-org-name')||!s||!val('m2-goals-short')||!val('m2-goals-long')||!val('m2-appearance')||!(m&&m.innerText.trim())) { shake(); return false; }
     return true;
   }
-
-  function validateModal3() {
-    const sliderIds = ['drugs', 'weapons', 'extortion', 'robbery', 'laundering'];
-    const total = sliderIds.reduce((sum, id) => {
-      const el = document.getElementById(`slider-${id}`);
-      return sum + (el ? parseInt(el.value) : 0);
-    }, 0);
-
-    const front = val('m3-front');
-
-    if (total !== 100 || !front) {
-      shakeButton();
-      return false;
-    }
+  function v3() {
+    const ids = ['drugs','weapons','extortion','robbery','laundering'];
+    const total = ids.reduce((s,id) => { const e = document.getElementById(`slider-${id}`); return s + (e ? parseInt(e.value) : 0); }, 0);
+    if (total !== 100 || !val('m3-front')) { shake(); return false; }
     return true;
   }
-
-  function validateModal4() {
-    const zone = val('m4-zone-name');
-    const coords = val('m4-coords');
-
-    if (!zone || !coords) {
-      shakeButton();
-      return false;
-    }
+  function v4() { if (!val('m4-zone-name')||!val('m4-coords')) { shake(); return false; } return true; }
+  function v5() {
+    if (!val('m5-timezone')) { shake(); return false; }
+    const lc = document.querySelector('.roster-card[data-roster-id="1"]');
+    if (!lc||!lc.querySelector('.roster-name').value.trim()||!lc.querySelector('.roster-discord').value.trim()) { shake(); return false; }
     return true;
   }
-
-  function validateModal5() {
-    const timezone = val('m5-timezone');
-    const leaderCard = document.querySelector('.roster-card[data-roster-id="1"]');
-    if (!timezone || !leaderCard) { shakeButton(); return false; }
-
-    const leaderName = leaderCard.querySelector('.roster-name');
-    const leaderDiscord = leaderCard.querySelector('.roster-discord');
-    if (!leaderName.value.trim() || !leaderDiscord.value.trim()) {
-      shakeButton();
-      return false;
-    }
-    return true;
-  }
-
-  function validateModal6() {
-    const stance = val('m6-stance');
+  function v6() {
+    if (!val('m6-stance')) { shake(); return false; }
     const seals = document.querySelectorAll('.seal-container');
-    const allBroken = Array.from(seals).every(s => s.classList.contains('broken'));
-
-    if (!stance || !allBroken) {
-      shakeButton();
-      return false;
-    }
+    if (!Array.from(seals).every(s => s.classList.contains('broken'))) { shake(); return false; }
     return true;
   }
 
   // ══════════════════════════════════════
-  // DATA COLLECTION (Sprint 5)
+  // DATA COLLECTION
   // ══════════════════════════════════════
-  function collectModalData(nodeId) {
-    switch (nodeId) {
-      case 1:
-        STATE.modalData[1] = {
-          name: val('m1-name'),
-          age: val('m1-age'),
-          discord: val('m1-discord'),
-          experience: val('m1-experience'),
-          sanctioned: document.getElementById('sanctionsToggle')?.classList.contains('active') || false,
-          sanctionDetail: val('m1-sanction-detail') || ''
-        };
-        break;
-      case 2: {
-        const selected = document.querySelector('.holo-card.selected');
-        const editor = document.getElementById('manifestoEditor');
-        STATE.modalData[2] = {
-          orgName: val('m2-org-name'),
-          type: selected ? selected.dataset.type : '',
-          goalsShort: val('m2-goals-short'),
-          goalsLong: val('m2-goals-long'),
-          appearance: val('m2-appearance'),
-          lore: editor ? editor.innerText.trim() : ''
-        };
-        break;
-      }
-      case 3: {
-        const ids = ['drugs', 'weapons', 'extortion', 'robbery', 'laundering'];
-        const economy = {};
-        ids.forEach(id => {
-          const el = document.getElementById(`slider-${id}`);
-          economy[id] = el ? parseInt(el.value) : 0;
-        });
-        economy.front = val('m3-front');
-        STATE.modalData[3] = economy;
-        break;
-      }
-      case 4:
-        STATE.modalData[4] = {
-          zoneName: val('m4-zone-name'),
-          coords: val('m4-coords')
-        };
-        break;
-      case 5: {
-        const cards = document.querySelectorAll('.roster-card');
-        const roster = [];
-        cards.forEach(card => {
-          const name = card.querySelector('.roster-name')?.value.trim();
-          const discord = card.querySelector('.roster-discord')?.value.trim();
-          const rank = card.querySelector('.roster-rank')?.value.trim();
-          if (name) roster.push({ name, discord, rank });
-        });
-        STATE.modalData[5] = {
-          timezone: val('m5-timezone'),
-          roster
-        };
-        break;
-      }
-      case 6:
-        STATE.modalData[6] = {
-          stance: val('m6-stance'),
-          rulesAccepted: true
-        };
-        break;
+  function collectModalData(n) {
+    switch(n) {
+      case 1: STATE.modalData[1] = { name:val('m1-name'), age:val('m1-age'), discord:val('m1-discord'), experience:val('m1-experience'), sanctioned:document.getElementById('sanctionsToggle')?.classList.contains('active')||false, sanctionDetail:val('m1-sanction-detail')||'' }; break;
+      case 2: { const s = document.querySelector('.holo-card.selected'); const e = document.getElementById('manifestoEditor'); STATE.modalData[2] = { orgName:val('m2-org-name'), type:s?s.dataset.type:'', goalsShort:val('m2-goals-short'), goalsLong:val('m2-goals-long'), appearance:val('m2-appearance'), lore:e?e.innerText.trim():'' }; break; }
+      case 3: { const ids=['drugs','weapons','extortion','robbery','laundering']; const eco={}; ids.forEach(id=>{ const e=document.getElementById(`slider-${id}`); eco[id]=e?parseInt(e.value):0; }); eco.front=val('m3-front'); STATE.modalData[3]=eco; break; }
+      case 4: STATE.modalData[4] = { zoneName:val('m4-zone-name'), coords:val('m4-coords') }; break;
+      case 5: { const cards=document.querySelectorAll('.roster-card'); const roster=[]; cards.forEach(c=>{ const n=c.querySelector('.roster-name')?.value.trim(); const d=c.querySelector('.roster-discord')?.value.trim(); const r=c.querySelector('.roster-rank')?.value.trim(); if(n) roster.push({name:n,discord:d,rank:r}); }); STATE.modalData[5]={timezone:val('m5-timezone'),roster}; break; }
+      case 6: STATE.modalData[6] = { stance:val('m6-stance'), rulesAccepted:true }; break;
     }
   }
 
-  // ══════════════════════════════════════
-  // COMPILE DOSSIER (Sprint 5)
-  // ══════════════════════════════════════
   function compileDossier() {
-    return {
-      ooc: STATE.modalData[1],
-      ic: STATE.modalData[2],
-      economy: STATE.modalData[3],
-      territory: STATE.modalData[4],
-      roster: STATE.modalData[5],
-      diplomacy: STATE.modalData[6]
-    };
+    return { ooc:STATE.modalData[1], ic:STATE.modalData[2], economy:STATE.modalData[3], territory:STATE.modalData[4], roster:STATE.modalData[5], diplomacy:STATE.modalData[6] };
   }
 
   // ══════════════════════════════════════
-  // TRANSMIT HANDLER (Sprint 5)
+  // TRANSMIT
   // ══════════════════════════════════════
   async function handleTransmit() {
     if ($btnTransmit.disabled || $btnTransmit.classList.contains('loading')) return;
-
     const dossier = compileDossier();
-
-    // State 1: Encrypting
     $btnTransmit.classList.add('loading');
-    $btnTransmit.querySelector('.transmit-text').textContent = 'ENCRIPTANDO Y TRANSMITIENDO...';
-
+    $('climaxText').textContent = 'ENCRIPTANDO Y TRANSMITIENDO...';
     try {
-      const response = await fetch('/api/submit-gang', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dossier)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      // State 2A: Success
+      const res = await fetch('/api/submit-gang', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dossier) });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       showSuccess();
-
-    } catch (error) {
-      console.error('Transmission failed:', error);
-      // State 2B: Error
+    } catch (err) {
+      console.error('Transmission failed:', err);
       $btnTransmit.classList.remove('loading');
       $btnTransmit.classList.add('error');
-      $btnTransmit.querySelector('.transmit-text').textContent = 'TRANSMISIÓN INTERCEPTADA — REINTENTAR';
-
-      setTimeout(() => {
-        $btnTransmit.classList.remove('error');
-      }, 2000);
+      $('climaxText').textContent = 'TRANSMISIÓN INTERCEPTADA — REINTENTAR';
+      setTimeout(() => $btnTransmit.classList.remove('error'), 2000);
     }
   }
 
-  // ══════════════════════════════════════
-  // SUCCESS SEQUENCE
-  // ══════════════════════════════════════
   function showSuccess() {
-    // Fade out dashboard
     if (typeof gsap !== 'undefined') {
-      gsap.to('#dashboard', {
-        opacity: 0,
-        scale: 0.95,
-        duration: 0.6,
-        ease: 'power2.in',
-        onComplete: () => {
-          $successOverlay.classList.add('active');
-        }
-      });
+      gsap.to($scene, { opacity:0, scale:0.95, duration:0.6, ease:'power2.in', onComplete:() => $successOverlay.classList.add('active') });
     } else {
-      document.getElementById('dashboard').style.opacity = '0';
+      $scene.style.opacity = '0';
       $successOverlay.classList.add('active');
     }
-
-    // Redirect after 4 seconds
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 4000);
+    setTimeout(() => { window.location.href = '/'; }, 4000);
   }
 
-  // ══════════════════════════════════════
-  // UTILITY FUNCTIONS
-  // ══════════════════════════════════════
-  function val(id) {
-    const el = document.getElementById(id);
-    return el ? el.value.trim() : '';
-  }
-
-  function shakeButton() {
-    if (typeof gsap !== 'undefined') {
-      gsap.fromTo($btnSave, { x: -6 }, {
-        x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)'
-      });
-    }
-  }
-
-  // ──────────────────────────────────────
-  // BOOT
-  // ──────────────────────────────────────
+  // ── BOOT ──
   document.addEventListener('DOMContentLoaded', init);
-
 })();
