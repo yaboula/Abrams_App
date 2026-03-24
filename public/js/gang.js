@@ -136,9 +136,18 @@
       $cableLayer.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
     }
 
-    const hubRect = $holoHub.getBoundingClientRect();
-    const hubCx = hubRect.left + hubRect.width / 2;
-    const hubCy = hubRect.top + hubRect.height / 2;
+    const $innerCore = document.querySelector('.holo-inner-core');
+    let hubCx, hubCy;
+
+    if ($innerCore) {
+      const coreRect = $innerCore.getBoundingClientRect();
+      hubCx = coreRect.left + coreRect.width / 2;
+      hubCy = coreRect.top + coreRect.height / 2;
+    } else {
+      const hubRect = $holoHub.getBoundingClientRect();
+      hubCx = hubRect.left + hubRect.width / 2;
+      hubCy = hubRect.top + hubRect.height / 2;
+    }
 
     document.querySelectorAll('.orbital-plate').forEach(plate => {
       const rect = plate.getBoundingClientRect();
@@ -358,9 +367,16 @@
 
   function updateHeader() {
     $headerCounter.textContent = `${STATE.completedCount} / 6`;
+    const progress = (STATE.completedCount / 6) * 100;
+    
     const $hudProgressBar = document.getElementById('hudProgressBar');
     if ($hudProgressBar) {
-      $hudProgressBar.style.width = `${(STATE.completedCount / 6) * 100}%`;
+      $hudProgressBar.style.width = `${progress}%`;
+    }
+    
+    const $holoStatusFill = document.getElementById('holoStatusFill');
+    if ($holoStatusFill) {
+      $holoStatusFill.style.width = `${progress}%`;
     }
   }
 
@@ -370,12 +386,14 @@
   function fireEnergyBeam(nodeId) {
     const plate = $(`node-${nodeId}`);
     const plateRect = plate.getBoundingClientRect();
-    const hubRect = $holoHub.getBoundingClientRect();
+    
+    const $innerCore = document.querySelector('.holo-inner-core');
+    const targetRect = $innerCore ? $innerCore.getBoundingClientRect() : $holoHub.getBoundingClientRect();
 
     const x1 = plateRect.left + plateRect.width / 2;
-    const y1 = plateRect.top + plateRect.height / 2;
-    const x2 = hubRect.left + hubRect.width / 2;
-    const y2 = hubRect.top + hubRect.height / 2;
+    const y1 = plateRect.top; // Update beam start to match cable (top center)
+    const x2 = targetRect.left + targetRect.width / 2;
+    const y2 = targetRect.top + targetRect.height / 2;
 
     // Scale to viewBox
     const svgRect = $beamLayer.getBoundingClientRect();
