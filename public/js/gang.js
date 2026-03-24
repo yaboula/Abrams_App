@@ -50,6 +50,7 @@
   // ══════════════════════════════════════
   function init() {
     positionOrbitalPlates();
+    initDataCables();
     initParticles();
     initLevitation();
     initTilt();
@@ -91,9 +92,6 @@
       plate._angle = angleDeg;
     });
 
-    // Draw data cables after positioning
-    drawDataCables();
-
     // Reposition on resize
     let resizeTimeout;
     window.addEventListener('resize', () => {
@@ -107,36 +105,53 @@
   // ══════════════════════════════════════
   // DATA CABLES (Visual connections)
   // ══════════════════════════════════════
-  function drawDataCables() {
+  let dataCablesInitialized = false;
+
+  function initDataCables() {
     const $cableLayer = document.getElementById('cableLayer');
     if (!$cableLayer) return;
     $cableLayer.innerHTML = '<defs><filter id="cableGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+    $cableLayer.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
+
+    document.querySelectorAll('.orbital-plate').forEach(plate => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.classList.add('data-cable');
+      line.id = `cable-${plate.dataset.node}`;
+      if (STATE.nodes[parseInt(plate.dataset.node)]) {
+        line.classList.add('active');
+      }
+      $cableLayer.appendChild(line);
+    });
+    
+    dataCablesInitialized = true;
+    updateDataCables();
+  }
+
+  function updateDataCables() {
+    if (!dataCablesInitialized) return;
+    
+    // Update viewBox on resize mapping
+    const $cableLayer = document.getElementById('cableLayer');
+    if ($cableLayer) {
+      $cableLayer.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
+    }
 
     const hubRect = $holoHub.getBoundingClientRect();
     const hubCx = hubRect.left + hubRect.width / 2;
     const hubCy = hubRect.top + hubRect.height / 2;
-
-    $cableLayer.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
 
     document.querySelectorAll('.orbital-plate').forEach(plate => {
       const rect = plate.getBoundingClientRect();
       const px = rect.left + rect.width / 2;
       const py = rect.top;
 
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', px);
-      line.setAttribute('y1', py);
-      line.setAttribute('x2', hubCx);
-      line.setAttribute('y2', hubCy);
-      line.classList.add('data-cable');
-      line.id = `cable-${plate.dataset.node}`;
-
-      // Activate if already verified
-      if (STATE.nodes[parseInt(plate.dataset.node)]) {
-        line.classList.add('active');
+      const line = document.getElementById(`cable-${plate.dataset.node}`);
+      if (line) {
+        line.setAttribute('x1', px);
+        line.setAttribute('y1', py);
+        line.setAttribute('x2', hubCx);
+        line.setAttribute('y2', hubCy);
       }
-
-      $cableLayer.appendChild(line);
     });
   }
 
@@ -218,6 +233,11 @@
         repeat: -1,
         delay: i * 0.15
       });
+    });
+
+    // Make cables follow plates dynamically
+    gsap.ticker.add(() => {
+      updateDataCables();
     });
   }
 
@@ -338,6 +358,10 @@
 
   function updateHeader() {
     $headerCounter.textContent = `${STATE.completedCount} / 6`;
+    const $hudProgressBar = document.getElementById('hudProgressBar');
+    if ($hudProgressBar) {
+      $hudProgressBar.style.width = `${(STATE.completedCount / 6) * 100}%`;
+    }
   }
 
   // ══════════════════════════════════════
