@@ -37,13 +37,26 @@
       </div>
     </header>
 
+    <!-- ─── DATA CABLES SVG ─── -->
+    <svg class="cable-layer" id="cableLayer" preserveAspectRatio="none">
+      <defs>
+        <filter id="cableGlow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+    </svg>
+
     <!-- ─── HOLOGRAM CORE ─── -->
     <div class="holo-hub" id="holoHub">
       <div class="holo-core" id="holoCore">
+        <!-- Logo watermark -->
+        <img class="holo-logo" src="/assets/logo1.png" alt="" draggable="false">
         <!-- Rotating wireframe rings -->
         <div class="holo-ring holo-ring-1"></div>
         <div class="holo-ring holo-ring-2"></div>
         <div class="holo-ring holo-ring-3"></div>
+        <div class="holo-ring holo-ring-4"></div>
         <div class="holo-inner-core"></div>
         <!-- Evolution overlays -->
         <div class="holo-evo holo-evo-grid" id="holoEvoGrid"></div>
@@ -56,7 +69,7 @@
     <div class="orbital-ring" id="orbitalRing">
       <button class="orbital-plate" id="node-1" data-node="1">
         <div class="plate-inner">
-          <div class="plate-icon">👤</div>
+          <div class="plate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>
           <div class="plate-label">OPERADOR</div>
           <div class="plate-sub">Datos OOC del operador</div>
           <div class="plate-status" id="status-1">
@@ -69,7 +82,7 @@
 
       <button class="orbital-plate" id="node-2" data-node="2">
         <div class="plate-inner">
-          <div class="plate-icon">🏴</div>
+          <div class="plate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
           <div class="plate-label">IDENTIDAD</div>
           <div class="plate-sub">Lore y tipología IC</div>
           <div class="plate-status" id="status-2">
@@ -82,7 +95,7 @@
 
       <button class="orbital-plate" id="node-3" data-node="3">
         <div class="plate-inner">
-          <div class="plate-icon">💰</div>
+          <div class="plate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/><circle cx="12" cy="14" r="2"/></svg></div>
           <div class="plate-label">LOGÍSTICA</div>
           <div class="plate-sub">Economía y recursos</div>
           <div class="plate-status" id="status-3">
@@ -95,7 +108,7 @@
 
       <button class="orbital-plate" id="node-4" data-node="4">
         <div class="plate-inner">
-          <div class="plate-icon">📍</div>
+          <div class="plate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8Z"/></svg></div>
           <div class="plate-label">TÁCTICA</div>
           <div class="plate-sub">Zona de operaciones</div>
           <div class="plate-status" id="status-4">
@@ -108,7 +121,7 @@
 
       <button class="orbital-plate" id="node-5" data-node="5">
         <div class="plate-inner">
-          <div class="plate-icon">⚔️</div>
+          <div class="plate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
           <div class="plate-label">ESCUADRA</div>
           <div class="plate-sub">Roster y jerarquía</div>
           <div class="plate-status" id="status-5">
@@ -121,7 +134,7 @@
 
       <button class="orbital-plate" id="node-6" data-node="6">
         <div class="plate-inner">
-          <div class="plate-icon">📜</div>
+          <div class="plate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
           <div class="plate-label">PROTOCOLO</div>
           <div class="plate-sub">Diplomacia y normas</div>
           <div class="plate-status" id="status-6">

@@ -66,13 +66,13 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const cx = vw / 2;
-    const cy = vh / 2 - 20;
+    const cy = vh / 2 - 30;
 
-    // Semicircle arc — plates distributed from -70° to 70° below the hologram
-    const radiusX = Math.min(vw * 0.4, 500);
-    const radiusY = Math.min(vh * 0.32, 280);
-    const startAngle = -80;
-    const endAngle = 80;
+    // Tighter orbit — 6 plates in a hexagonal arc around center
+    const radiusX = Math.min(vw * 0.34, 440);
+    const radiusY = Math.min(vh * 0.3, 260);
+    const startAngle = -65;
+    const endAngle = 65;
     const count = plates.length;
 
     plates.forEach((plate, i) => {
@@ -80,7 +80,7 @@
       const angleRad = (angleDeg * Math.PI) / 180;
 
       const x = cx + radiusX * Math.sin(angleRad) - plate.offsetWidth / 2;
-      const y = cy + radiusY * Math.cos(angleRad) - plate.offsetHeight / 2 + 60;
+      const y = cy + radiusY * Math.cos(angleRad) - plate.offsetHeight / 2 + 50;
 
       plate.style.left = `${x}px`;
       plate.style.top = `${y}px`;
@@ -89,10 +89,58 @@
       plate._angle = angleDeg;
     });
 
+    // Draw data cables after positioning
+    drawDataCables();
+
     // Reposition on resize
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-      positionOrbitalPlates();
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        positionOrbitalPlates();
+      }, 100);
     });
+  }
+
+  // ══════════════════════════════════════
+  // DATA CABLES (Visual connections)
+  // ══════════════════════════════════════
+  function drawDataCables() {
+    const $cableLayer = document.getElementById('cableLayer');
+    if (!$cableLayer) return;
+    $cableLayer.innerHTML = '<defs><filter id="cableGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+
+    const hubRect = $holoHub.getBoundingClientRect();
+    const hubCx = hubRect.left + hubRect.width / 2;
+    const hubCy = hubRect.top + hubRect.height / 2;
+
+    $cableLayer.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
+
+    document.querySelectorAll('.orbital-plate').forEach(plate => {
+      const rect = plate.getBoundingClientRect();
+      const px = rect.left + rect.width / 2;
+      const py = rect.top + rect.height / 2;
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', px);
+      line.setAttribute('y1', py);
+      line.setAttribute('x2', hubCx);
+      line.setAttribute('y2', hubCy);
+      line.classList.add('data-cable');
+      line.id = `cable-${plate.dataset.node}`;
+
+      // Activate if already verified
+      if (STATE.nodes[parseInt(plate.dataset.node)]) {
+        line.classList.add('active');
+      }
+
+      $cableLayer.appendChild(line);
+    });
+  }
+
+  function activateCable(nodeId) {
+    const cable = document.getElementById(`cable-${nodeId}`);
+    if (cable) cable.classList.add('active');
   }
 
   // ══════════════════════════════════════
@@ -259,6 +307,7 @@
 
     updatePlateUI(nodeId);
     updateHeader();
+    activateCable(nodeId);
     fireEnergyBeam(nodeId);
     evolveHologram();
     closeModal();
