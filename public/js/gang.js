@@ -17,12 +17,12 @@
   };
 
   const NODE_CONFIG = {
-    1: { title: 'OPERADOR OOC', template: buildModal1 },
-    2: { title: 'IDENTIDAD & LORE IC', template: buildModal2 },
-    3: { title: 'LOGÍSTICA & ECONOMÍA', template: buildModal3 },
-    4: { title: 'MAPA TÁCTICO', template: buildModal4 },
-    5: { title: 'ESCUADRA / ROSTER', template: buildModal5 },
-    6: { title: 'DIPLOMACIA & NORMAS', template: buildModal6 }
+    1: { get title() { return window.t('nodes.n1_title'); }, template: buildModal1 },
+    2: { get title() { return window.t('nodes.n2_title'); }, template: buildModal2 },
+    3: { get title() { return window.t('nodes.n3_title'); }, template: buildModal3 },
+    4: { get title() { return window.t('nodes.n4_title'); }, template: buildModal4 },
+    5: { get title() { return window.t('nodes.n5_title'); }, template: buildModal5 },
+    6: { get title() { return window.t('nodes.n6_title'); }, template: buildModal6 }
   };
 
   // ══════════════════════════════════════
@@ -49,6 +49,7 @@
   // INIT
   // ══════════════════════════════════════
   function init() {
+    initI18n();
     positionOrbitalPlates();
     initDataCables();
     initParticles();
@@ -57,6 +58,26 @@
     bindPlateClicks();
     bindModal();
     animateEntrance();
+  }
+
+  // ══════════════════════════════════════
+  // I18N
+  // ══════════════════════════════════════
+  function initI18n() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        window.currentLang = e.target.dataset.lang;
+        updateStaticUI();
+      });
+    });
+    updateStaticUI();
+  }
+  function updateStaticUI() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.innerText = t(el.dataset.i18n);
+    });
   }
 
   // ══════════════════════════════════════
@@ -344,7 +365,7 @@
     closeModal();
 
     if (STATE.completedCount === 6) {
-      setTimeout(triggerClimax, 1200);
+      setTimeout(triggerClimax, 500);
     }
   }
 
@@ -356,7 +377,7 @@
     const status = $(`status-${nodeId}`);
     plate.classList.add('verified');
     status.querySelector('.ps-icon').textContent = '✓';
-    status.querySelector('.ps-text').textContent = 'VERIFICADO';
+    status.querySelector('.ps-text').textContent = window.t('nodes.verified');
 
     if (typeof gsap !== 'undefined') {
       gsap.fromTo(plate, { scale: 0.95 }, {
@@ -443,13 +464,13 @@
 
     // Status text
     const statusTexts = {
-      0: '[ ESTADO: DOSSIER EN BLANCO ]',
-      1: '[ ESTADO: RECOPILANDO DATOS ]',
-      2: '[ ESTADO: DATOS PARCIALES ]',
-      3: '[ ESTADO: ANALIZANDO ECONOMÍA ]',
-      4: '[ ESTADO: MAPEANDO TERRITORIO ]',
-      5: '[ ESTADO: ESCUADRA REGISTRADA ]',
-      6: '[ ESTADO: DOSSIER COMPLETO ]'
+      0: `[ ESTADO: ${window.t('header.status_blank')} ]`,
+      1: `[ ESTADO: ${window.t('header.status_collecting')} ]`,
+      2: `[ ESTADO: ${window.t('header.status_partial')} ]`,
+      3: `[ ESTADO: ${window.t('header.status_analyzing')} ]`,
+      4: `[ ESTADO: ${window.t('header.status_mapping')} ]`,
+      5: `[ ESTADO: ${window.t('header.status_squad')} ]`,
+      6: `[ ESTADO: ${window.t('header.status_complete')} ]`
     };
     $holoStatus.textContent = statusTexts[count] || statusTexts[0];
 
@@ -497,44 +518,44 @@
 
     // 1. All plates pulse
     tl.to('.orbital-plate.verified', {
-      boxShadow: '0 0 40px rgba(230,57,70,0.4), 0 0 80px rgba(230,57,70,0.2)',
-      duration: 0.3,
-      stagger: 0.08,
+      boxShadow: '0 0 40px rgba(230,57,70,0.6), 0 0 80px rgba(230,57,70,0.3)',
+      duration: 0.2,
+      stagger: 0.05,
       yoyo: true,
-      repeat: 2
+      repeat: 1
     });
 
     // 2. Hologram overload flash
     tl.to($holoCore, {
       scale: 1.5,
-      duration: 0.3,
+      duration: 0.2,
       ease: 'power2.in'
-    }, '+=0.2');
+    }, '-=0.1');
 
     tl.to($holoCore, {
       opacity: 0,
       scale: 2,
-      duration: 0.4,
+      duration: 0.3,
       ease: 'power2.out'
     });
 
-    // 3. Hide hologram + plates
-    tl.to([$holoHub, '.orbital-plate'], {
+    // 3. Hide hologram + plates + cables
+    tl.to([$holoHub, '.orbital-plate', '.data-cable'], {
       opacity: 0,
-      duration: 0.5,
+      duration: 0.4,
       ease: 'power2.out'
-    });
+    }, '<');
 
     // 4. Materialize TRANSMIT button
     tl.add(() => {
       $climaxContainer.classList.add('active');
       $btnTransmit.disabled = false;
-      $('hudStatusText').textContent = 'DOSSIER COMPLETO';
+      $('hudStatusText').textContent = window.t('header.status_complete');
     });
 
     tl.fromTo($btnTransmit,
       { opacity: 0, scale: 0.5, y: 20 },
-      { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: 'back.out(1.7)' }
+      { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: 'back.out(1.7)' }
     );
   }
 
@@ -580,54 +601,27 @@
     const frag = document.createElement('div');
     frag.innerHTML = `
       <div class="modal-section">
-        <div class="modal-section-label">DATOS FUERA DE PERSONAJE</div>
+        <div class="modal-section-label">${window.t('modals.m1.title')}</div>
         <div class="gang-form-grid">
           <div class="gang-input-group">
-            <label class="gang-label">Nombre / Alias OOC</label>
-            <input class="gang-input" type="text" id="m1-name" placeholder="Tu nombre real o alias" required>
+            <label class="gang-label">${window.t('modals.m1.name')}</label>
+            <input class="gang-input" type="text" id="m1-name" placeholder="${window.t('modals.m1.name_ph')}" required>
           </div>
           <div class="gang-input-group">
-            <label class="gang-label">Edad OOC</label>
+            <label class="gang-label">${window.t('modals.m1.age')}</label>
             <input class="gang-input" type="number" id="m1-age" placeholder="18+" min="1" max="99" required>
           </div>
           <div class="gang-input-group">
-            <label class="gang-label">Discord Tag</label>
-            <input class="gang-input" type="text" id="m1-discord" placeholder="usuario#0000" required>
+            <label class="gang-label">${window.t('modals.m1.discord')}</label>
+            <input class="gang-input" type="text" id="m1-discord" placeholder="${window.t('modals.m1.discord_ph')}" required>
           </div>
         </div>
         <div class="gang-input-group">
-          <label class="gang-label">Experiencia en Roleplay</label>
-          <textarea class="gang-textarea" id="m1-experience" placeholder="Describe tu experiencia previa en servidores de RP..." required></textarea>
-        </div>
-      </div>
-      <div class="modal-section">
-        <div class="modal-section-label">HISTORIAL DE SANCIONES</div>
-        <div class="sanctions-toggle-wrapper" id="sanctionsWrapper">
-          <div class="sanctions-toggle" id="sanctionsToggle">
-            <div class="sanctions-toggle-thumb"></div>
-          </div>
-          <span class="sanctions-toggle-label" id="sanctionsLabel">HISTORIAL LIMPIO</span>
-        </div>
-        <div class="sanctions-reveal" id="sanctionsReveal">
-          <div class="gang-input-group">
-            <label class="gang-label">Justificación de la Sanción</label>
-            <textarea class="gang-textarea" id="m1-sanction-detail" placeholder="Explica las sanciones recibidas y qué aprendiste..."></textarea>
-          </div>
+          <label class="gang-label">${window.t('modals.m1.exp')}</label>
+          <textarea class="gang-textarea" id="m1-experience" placeholder="${window.t('modals.m1.exp_ph')}" required></textarea>
         </div>
       </div>
     `;
-    setTimeout(() => {
-      const toggle = document.getElementById('sanctionsToggle');
-      const wrapper = document.getElementById('sanctionsWrapper');
-      const reveal = document.getElementById('sanctionsReveal');
-      const label = document.getElementById('sanctionsLabel');
-      wrapper.addEventListener('click', () => {
-        toggle.classList.toggle('active');
-        const active = toggle.classList.contains('active');
-        reveal.classList.toggle('visible', active);
-        label.textContent = active ? 'SANCIONADO' : 'HISTORIAL LIMPIO';
-      });
-    }, 50);
     return frag;
   }
 
@@ -641,23 +635,26 @@
     const svgHexagon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>`;
 
     const types = [
-      { icon: svgCrosshair, label: 'Pandilla' }, { icon: svgBriefcase, label: 'Mafia' },
-      { icon: svgSkull, label: 'Cártel' }, { icon: svgMotorcycle, label: 'MC' },
-      { icon: svgNetwork, label: 'Red Criminal' }, { icon: svgHexagon, label: 'Otro' }
+      { icon: svgCrosshair, label: window.t('modals.m2.type_street') },
+      { icon: svgBriefcase, label: window.t('modals.m2.type_mafia') },
+      { icon: svgSkull, label: window.t('modals.m2.type_cartel') },
+      { icon: svgMotorcycle, label: window.t('modals.m2.type_mc') },
+      { icon: svgNetwork, label: window.t('modals.m2.type_org') },
+      { icon: svgHexagon, label: window.t('modals.m2.type_other') }
     ];
 
     frag.innerHTML = `
       <div class="modal-section">
-        <div class="modal-section-label">IDENTIDAD DE LA ORGANIZACIÓN</div>
+        <div class="modal-section-label">${window.t('modals.m2.title')}</div>
         <div class="gang-form-grid">
           <div class="gang-input-group">
-            <label class="gang-label">Nombre de la Organización</label>
-            <input class="gang-input" type="text" id="m2-org-name" placeholder="Nombre IC de tu organización" required>
+            <label class="gang-label">${window.t('modals.m2.org_name')}</label>
+            <input class="gang-input" type="text" id="m2-org-name" placeholder="${window.t('modals.m2.org_name_ph')}" required>
           </div>
         </div>
       </div>
       <div class="modal-section">
-        <div class="modal-section-label">TIPOLOGÍA CRIMINAL</div>
+        <div class="modal-section-label">${window.t('modals.m2.typology')}</div>
         <div class="holo-grid" id="holoGrid">
           ${types.map(t => `<div class="holo-card" data-type="${t.label}"><div class="holo-card-icon" style="width:28px;height:28px;margin:0 auto 8px auto;">${t.icon}</div><div class="holo-card-label">${t.label}</div></div>`).join('')}
         </div>
@@ -665,29 +662,26 @@
       <div class="modal-section">
         <div class="gang-form-grid">
           <div class="gang-input-group">
-            <label class="gang-label">Objetivos a Corto Plazo</label>
-            <textarea class="gang-textarea" id="m2-goals-short" placeholder="¿Qué busca lograr en las primeras semanas?" required></textarea>
+            <label class="gang-label">${window.t('modals.m2.goals_short')}</label>
+            <textarea class="gang-textarea" id="m2-goals-short" placeholder="${window.t('modals.m2.goals_short_ph')}" required></textarea>
           </div>
           <div class="gang-input-group">
-            <label class="gang-label">Objetivos a Largo Plazo</label>
-            <textarea class="gang-textarea" id="m2-goals-long" placeholder="Visión a largo plazo de la organización..." required></textarea>
+            <label class="gang-label">${window.t('modals.m2.goals_long')}</label>
+            <textarea class="gang-textarea" id="m2-goals-long" placeholder="${window.t('modals.m2.goals_long_ph')}" required></textarea>
           </div>
         </div>
       </div>
       <div class="modal-section">
         <div class="gang-input-group">
-          <label class="gang-label">Vestimenta y Rasgos Identificativos</label>
-          <textarea class="gang-textarea" id="m2-appearance" placeholder="Colores, tatuajes obligatorios, tipos de vehículos, estilo de ropa..." required></textarea>
+          <label class="gang-label">${window.t('modals.m2.clothing')}</label>
+          <textarea class="gang-textarea" id="m2-appearance" placeholder="${window.t('modals.m2.clothing_ph')}" required></textarea>
         </div>
       </div>
       <div class="modal-section">
-        <div class="modal-section-label">MANIFIESTO REDACTADO</div>
-        <p style="font-size:11px;color:var(--color-text-dim);margin-bottom:10px;letter-spacing:0.5px">
-          Escribe la historia y lore de tu organización. El escáner detectará palabras clave estructurales.
-        </p>
+        <div class="modal-section-label">${window.t('modals.m2.lore_title')}</div>
         <div class="manifesto-container">
           <div class="manifesto-backdrop" id="manifestoBackdrop"></div>
-          <textarea class="manifesto-textarea" id="m2-lore" placeholder="Escribe aquí el lore de tu organización..."></textarea>
+          <textarea class="manifesto-textarea" id="m2-lore" placeholder="${window.t('modals.m2.lore_ph')}"></textarea>
         </div>
       </div>
     `;
@@ -739,15 +733,15 @@
   function buildModal3() {
     const frag = document.createElement('div');
     const sliders = [
-      { id: 'drugs', label: 'Narcotráfico' }, { id: 'weapons', label: 'Tráfico de Armas' },
-      { id: 'extortion', label: 'Extorsión' }, { id: 'robbery', label: 'Robos' },
-      { id: 'laundering', label: 'Blanqueo de Capitales' }
+      { id: 'drugs', label: window.t('modals.m3.drugs') }, { id: 'weapons', label: window.t('modals.m3.weapons') },
+      { id: 'extortion', label: window.t('modals.m3.extortion') }, { id: 'robbery', label: window.t('modals.m3.robbery') },
+      { id: 'laundering', label: window.t('modals.m3.laundering') }
     ];
     frag.innerHTML = `
       <div class="modal-section">
-        <div class="modal-section-label">DISTRIBUCIÓN DE RECURSOS</div>
+        <div class="modal-section-label">${window.t('modals.m3.dist_title')}</div>
         <div class="points-display">
-          <span class="points-label">Puntos Disponibles</span>
+          <span class="points-label">${window.t('modals.m3.points')}</span>
           <span class="points-value" id="pointsValue">100</span>
         </div>
         ${sliders.map(s => `
@@ -762,8 +756,8 @@
       </div>
       <div class="modal-section">
         <div class="gang-input-group">
-          <label class="gang-label">Negocio Tapadera / Actividad Legal</label>
-          <textarea class="gang-textarea" id="m3-front" placeholder="Describe tu fachada legal para blanquear ingresos..." required></textarea>
+          <label class="gang-label">${window.t('modals.m3.front')}</label>
+          <textarea class="gang-textarea" id="m3-front" placeholder="${window.t('modals.m3.front_ph')}" required></textarea>
         </div>
       </div>
     `;
@@ -809,28 +803,28 @@
     const frag = document.createElement('div');
     frag.innerHTML = `
       <div class="modal-section" style="margin-bottom: 0;">
-        <div class="modal-section-label">SELECCIÓN DE TERRITORIO</div>
+        <div class="modal-section-label">${window.t('modals.m4.title')}</div>
         
         <div class="map-zone-mode" id="mapZoneContainer">
           <div class="map-hud-overlay"></div>
           <!-- Zonas Clicables (Top a Bottom) -->
-          <div class="map-zone" data-zone="Norte (Paleto, Chiliad)" style="top: 0%; left: 0%; width: 100%; height: 26%;"></div>
-          <div class="map-zone" data-zone="Condado de Blaine (Sandy, Senora)" style="top: 26%; left: 0%; width: 100%; height: 22%;"></div>
-          <div class="map-zone" data-zone="Vinewood y Rockford Hills" style="top: 48%; left: 0%; width: 100%; height: 16%;"></div>
-          <div class="map-zone" data-zone="Oeste (Vespucci, Del Perro)" style="top: 64%; left: 0%; width: 45%; height: 16%;"></div>
-          <div class="map-zone" data-zone="Sur y Centro (Davis, Downtown)" style="top: 64%; left: 45%; width: 55%; height: 16%;"></div>
-          <div class="map-zone" data-zone="Este y Espejo (Mirror Park, East LS)" style="top: 50%; left: 65%; width: 35%; height: 14%;"></div>
-          <div class="map-zone" data-zone="Puerto Sur (Elysian y Terminal)" style="top: 80%; left: 0%; width: 100%; height: 20%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z1')}" style="top: 0%; left: 0%; width: 100%; height: 26%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z2')}" style="top: 26%; left: 0%; width: 100%; height: 22%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z3')}" style="top: 48%; left: 0%; width: 100%; height: 16%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z4')}" style="top: 64%; left: 0%; width: 45%; height: 16%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z5')}" style="top: 64%; left: 45%; width: 55%; height: 16%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z6')}" style="top: 50%; left: 65%; width: 35%; height: 14%;"></div>
+          <div class="map-zone" data-zone="${window.t('modals.m4.zones.z7')}" style="top: 80%; left: 0%; width: 100%; height: 20%;"></div>
         </div>
 
         <div class="gang-form-grid" style="grid-template-columns: 1fr; margin-top: 16px;">
           <div class="gang-input-group">
-            <label class="gang-label">Zona Principal (Selecciona en el mapa)</label>
-            <input class="gang-input terminal" type="text" id="m4-zone-name" placeholder="[ ZONA NO SELECCIONADA ]" readonly required style="pointer-events: none;">
+            <label class="gang-label">${window.t('modals.m4.zone')}</label>
+            <input class="gang-input terminal" type="text" id="m4-zone-name" placeholder="${window.t('modals.m4.zone_unselected')}" readonly required style="pointer-events: none;">
           </div>
           <div class="gang-input-group">
-            <label class="gang-label">Ubicación Estratégica / Detalles (Opcional)</label>
-            <textarea class="gang-textarea" id="m4-zone-details" placeholder="Describe calles, bloques o edificios específicos de tu HQ..."></textarea>
+            <label class="gang-label">${window.t('modals.m4.details')}</label>
+            <textarea class="gang-textarea" id="m4-zone-details" placeholder="${window.t('modals.m4.details_ph')}"></textarea>
           </div>
         </div>
       </div>
@@ -846,7 +840,7 @@
         zone.addEventListener('click', () => {
           zones.forEach(z => z.classList.remove('active'));
           zone.classList.add('active');
-          inputZone.value = `[ ZONA: ${zone.dataset.zone.toUpperCase()} ]`;
+          inputZone.value = `[ ${window.t('modals.m4.zone_prefix')} ${zone.dataset.zone.toUpperCase()} ]`;
           
           if (typeof gsap !== 'undefined') {
             gsap.fromTo(inputZone, { color: '#fff', backgroundColor: 'rgba(255,255,255,0.2)' }, { color: 'var(--color-accent)', backgroundColor: 'transparent', duration: 0.5 });
@@ -863,23 +857,23 @@
     frag.innerHTML = `
       <div class="modal-section">
         <div class="gang-input-group">
-          <label class="gang-label">Horario Operativo Principal (Zona Horaria)</label>
-          <input class="gang-input" type="text" id="m5-timezone" placeholder="Ej: CET (20:00 - 02:00)" required>
+          <label class="gang-label">${window.t('modals.m5.timezone')}</label>
+          <input class="gang-input" type="text" id="m5-timezone" placeholder="${window.t('modals.m5.timezone_ph')}" required>
         </div>
       </div>
       <div class="modal-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div class="modal-section-label" style="margin-bottom: 0;">MIEMBROS DEL ESCUADRÓN</div>
-          <button class="btn-add-operative" id="btnAddOperative" type="button" style="width: auto; padding: 6px 12px; margin: 0; font-size: 10px;"><span>+</span> AÑADIR OPERATIVO</button>
+          <div class="modal-section-label" style="margin-bottom: 0;">${window.t('modals.m5.roster_title')}</div>
+          <button class="btn-add-operative" id="btnAddOperative" type="button" style="width: auto; padding: 6px 12px; margin: 0; font-size: 10px;"><span>+</span> ${window.t('modals.m5.add_btn').replace('+ ', '')}</button>
         </div>
         <div class="roster-container" id="rosterContainer">
           <div class="roster-card" data-roster-id="1">
-            <div class="roster-card-header"><span class="roster-card-tag">LÍDER — #1</span></div>
+            <div class="roster-card-header"><span class="roster-card-tag">${window.t('modals.m5.leader')} — #1</span></div>
             <div class="gang-form-grid">
-              <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje" required></div>
-              <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000" required></div>
+              <div class="gang-input-group"><label class="gang-label">${window.t('modals.m5.name_ic')}</label><input class="gang-input roster-name" type="text" placeholder="${window.t('modals.m5.name_ic_ph')}" required></div>
+              <div class="gang-input-group"><label class="gang-label">${window.t('modals.m5.discord')}</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000" required></div>
             </div>
-            <div class="gang-input-group" style="margin-top: 15px;"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" value="Líder" readonly></div>
+            <div class="gang-input-group" style="margin-top: 15px;"><label class="gang-label">${window.t('modals.m5.rank')}</label><input class="gang-input roster-rank" type="text" value="${window.t('modals.m5.leader')}" readonly></div>
           </div>
         </div>
       </div>
@@ -894,12 +888,12 @@
         const card = document.createElement('div');
         card.className = 'roster-card'; card.dataset.rosterId = rc;
         card.innerHTML = `
-          <div class="roster-card-header"><span class="roster-card-tag">OPERATIVO — #${rc}</span><button class="roster-card-remove" type="button">✕</button></div>
+          <div class="roster-card-header"><span class="roster-card-tag">${window.t('modals.m5.operative')} — #${rc}</span><button class="roster-card-remove" type="button">✕</button></div>
           <div class="gang-form-grid">
-            <div class="gang-input-group"><label class="gang-label">Nombre IC</label><input class="gang-input roster-name" type="text" placeholder="Nombre en personaje"></div>
-            <div class="gang-input-group"><label class="gang-label">Discord OOC</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000"></div>
+            <div class="gang-input-group"><label class="gang-label">${window.t('modals.m5.name_ic')}</label><input class="gang-input roster-name" type="text" placeholder="${window.t('modals.m5.name_ic_ph')}"></div>
+            <div class="gang-input-group"><label class="gang-label">${window.t('modals.m5.discord')}</label><input class="gang-input roster-discord" type="text" placeholder="usuario#0000"></div>
           </div>
-          <div class="gang-input-group" style="margin-top: 15px;"><label class="gang-label">Rango</label><input class="gang-input roster-rank" type="text" placeholder="Soldado, Sicario, etc."></div>
+          <div class="gang-input-group" style="margin-top: 15px;"><label class="gang-label">${window.t('modals.m5.rank')}</label><input class="gang-input roster-rank" type="text" placeholder="${window.t('modals.m5.rank_ph')}"></div>
         `;
         card.querySelector('.roster-card-remove').addEventListener('click', () => {
           if (typeof gsap !== 'undefined') gsap.to(card, { opacity:0, scale:0.9, height:0, duration:0.3, ease:'power2.in', onComplete:()=>card.remove() });
@@ -913,21 +907,16 @@
 
   function buildModal6() {
     const frag = document.createElement('div');
-    const rules = [
-      'Tolerancia Cero: Cualquier comportamiento tóxico, metagaming, powergaming o failRP resultará en sanción inmediata.',
-      'Economía Real: El sistema económico es realista. No se permiten métodos de farming abusivos ni exploits.',
-      'No Ayudas Iniciales: Ningún miembro del staff proporcionará ventajas iniciales a organizaciones nuevas.',
-      'Aceptación de CK: Todos los miembros aceptan la posibilidad de Character Kill bajo circunstancias válidas de RP.'
-    ];
+    const rules = window.t('modals.m6.rules');
     frag.innerHTML = `
       <div class="modal-section">
         <div class="gang-input-group">
-          <label class="gang-label">Postura de Alianzas</label>
-          <textarea class="gang-textarea" id="m6-stance" placeholder="¿Sois aislacionistas, agresivos o buscáis alianzas? Explica tu postura diplomática..." required></textarea>
+          <label class="gang-label">${window.t('modals.m6.stance')}</label>
+          <textarea class="gang-textarea" id="m6-stance" placeholder="${window.t('modals.m6.stance_ph')}" required></textarea>
         </div>
       </div>
       <div class="modal-section">
-        <div class="modal-section-label">PROTOCOLO DE SEGURIDAD — MANTÉN PULSADO PARA DESBLOQUEAR</div>
+        <div class="modal-section-label">${window.t('modals.m6.protocol_title')}</div>
         <div class="rules-list" id="rulesList">
           ${rules.map((r,i) => `
             <div class="rule-item">
@@ -981,14 +970,11 @@
 
   function v1() {
     if (!val('m1-name')||!val('m1-age')||!val('m1-discord')||!val('m1-experience')) { shake(); return false; }
-    const t = document.getElementById('sanctionsToggle');
-    if (t && t.classList.contains('active') && !val('m1-sanction-detail')) { shake(); return false; }
     return true;
   }
   function v2() {
     const s = document.querySelector('.holo-card.selected');
-    const m = document.getElementById('manifestoEditor');
-    if (!val('m2-org-name')||!s||!val('m2-goals-short')||!val('m2-goals-long')||!val('m2-appearance')||!(m&&m.innerText.trim())) { shake(); return false; }
+    if (!val('m2-org-name')||!s||!val('m2-goals-short')||!val('m2-goals-long')||!val('m2-appearance')||!val('m2-lore')) { shake(); return false; }
     return true;
   }
   function v3() {
@@ -1016,8 +1002,8 @@
   // ══════════════════════════════════════
   function collectModalData(n) {
     switch(n) {
-      case 1: STATE.modalData[1] = { name:val('m1-name'), age:val('m1-age'), discord:val('m1-discord'), experience:val('m1-experience'), sanctioned:document.getElementById('sanctionsToggle')?.classList.contains('active')||false, sanctionDetail:val('m1-sanction-detail')||'' }; break;
-      case 2: { const s = document.querySelector('.holo-card.selected'); const e = document.getElementById('manifestoEditor'); STATE.modalData[2] = { orgName:val('m2-org-name'), type:s?s.dataset.type:'', goalsShort:val('m2-goals-short'), goalsLong:val('m2-goals-long'), appearance:val('m2-appearance'), lore:e?e.innerText.trim():'' }; break; }
+      case 1: STATE.modalData[1] = { name:val('m1-name'), age:val('m1-age'), discord:val('m1-discord'), experience:val('m1-experience') }; break;
+      case 2: { const s = document.querySelector('.holo-card.selected'); STATE.modalData[2] = { orgName:val('m2-org-name'), type:s?s.dataset.type:'', goalsShort:val('m2-goals-short'), goalsLong:val('m2-goals-long'), appearance:val('m2-appearance'), lore:val('m2-lore') }; break; }
       case 3: { const ids=['drugs','weapons','extortion','robbery','laundering']; const eco={}; ids.forEach(id=>{ const e=document.getElementById(`slider-${id}`); eco[id]=e?parseInt(e.value):0; }); eco.front=val('m3-front'); STATE.modalData[3]=eco; break; }
       case 4: STATE.modalData[4] = { zoneName:val('m4-zone-name'), details:val('m4-zone-details') }; break;
       case 5: { const cards=document.querySelectorAll('.roster-card'); const roster=[]; cards.forEach(c=>{ const n=c.querySelector('.roster-name')?.value.trim(); const d=c.querySelector('.roster-discord')?.value.trim(); const r=c.querySelector('.roster-rank')?.value.trim(); if(n) roster.push({name:n,discord:d,rank:r}); }); STATE.modalData[5]={timezone:val('m5-timezone'),roster}; break; }
@@ -1036,7 +1022,7 @@
     if ($btnTransmit.disabled || $btnTransmit.classList.contains('loading')) return;
     const dossier = compileDossier();
     $btnTransmit.classList.add('loading');
-    $('climaxText').textContent = 'ENCRIPTANDO Y TRANSMITIENDO...';
+    $('climaxText').textContent = window.t('header.transmitting_step');
     try {
       const res = await fetch('/api/submit-gang', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dossier) });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
@@ -1045,8 +1031,11 @@
       console.error('Transmission failed:', err);
       $btnTransmit.classList.remove('loading');
       $btnTransmit.classList.add('error');
-      $('climaxText').textContent = 'TRANSMISIÓN INTERCEPTADA — REINTENTAR';
-      setTimeout(() => $btnTransmit.classList.remove('error'), 2000);
+      $('climaxText').textContent = window.t('header.transmit_error');
+      setTimeout(() => {
+        $btnTransmit.classList.remove('error');
+        $('climaxText').textContent = window.t('header.transmit_btn');
+      }, 2000);
     }
   }
 

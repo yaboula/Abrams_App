@@ -649,6 +649,19 @@ html, body {
   display: flex; justify-content: flex-end;
 }
 
+/* ─── LANGUAGE SWITCHER ─── */
+.lang-switcher { display: flex; gap: 8px; }
+.lang-btn {
+  background: transparent; border: 1px solid rgba(255,255,255,0.1);
+  color: var(--color-text-dim); font-family: var(--font-heading);
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  padding: 4px 8px; transition: all 0.3s ease;
+}
+.lang-btn:hover { border-color: rgba(230,57,70,0.5); color: #fff; }
+.lang-btn.active { background: var(--color-accent); color: #000; border-color: var(--color-accent); }
+
+/* ─── HUD COMPONENTS ─── */
+
 .btn-save {
   display: flex; align-items: center; gap: 10px;
   padding: 14px 32px;
