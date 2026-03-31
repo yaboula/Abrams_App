@@ -1,0 +1,39 @@
+# SPRINT 4: MODAL 5 (ESCUADRA), MODAL 6 (DIPLOMACIA Y NORMAS) & FINAL CLIMAX
+
+## 1. SPRINT OBJECTIVE
+Build the UI and logic for the final two modals (Roster and Diplomacy/Rules) and implement the "Final Climax": unlocking the main `[ TRANSMITIR DOSSIER ]` button on the Base Dashboard once all 6 Nodes are verified.
+
+## 2. TECHNICAL REQUIREMENTS: MODAL 5 (ESCUADRA / ROSTER)
+**Goal:** A dynamic interface to add gang members without using an ugly, massive textarea.
+- **Fields:** 1. A global input for "Horario Operativo Principal (Zona Horaria)".
+  2. A large `[ + AÑADIR OPERATIVO ]` button.
+- **Special Mechanic (Dynamic Node Injection):**
+  - **JS Logic:** When the user clicks `[ + AÑADIR OPERATIVO ]`, inject a new "Identity Card" (`div`) into a CSS Grid container.
+  - Each Identity Card must have inputs for: Nombre IC, Discord OOC, and Rango.
+  - Each card (except the first one, which belongs to the Leader) must have a small `[ X ]` button to remove it from the DOM.
+- **Validation:** At least 1 card (Leader) must be completely filled out before allowing "GUARDAR DATOS".
+
+## 3. TECHNICAL REQUIREMENTS: MODAL 6 (DIPLOMACIA Y NORMAS)
+**Goal:** Collect diplomatic stance and force users to actively accept the server rules via interaction.
+- **Fields:** A textarea for "Postura de Alianzas" (Are they isolationist, aggressive, or seeking alliances?).
+- **Special Mechanic (Hold-to-Unlock Firewalls):**
+  - Display the 4 core rules of Abrams RP (Tolerancia Cero, Economía Real, No Ayudas Iniciales, Aceptación de CK).
+  - DO NOT USE CHECKBOXES. Next to each rule, place a "Security Seal" (a button or SVG circle).
+  - **JS Logic:** The user must trigger a `mousedown` (or `touchstart`) event and hold it for **1.5 seconds**. 
+  - While holding, a progress bar or SVG `stroke-dashoffset` should visually fill up in red.
+  - If they release early (`mouseup` / `mouseleave`), the progress resets to 0 immediately.
+  - Once 1.5s is reached, the seal is permanently "Broken/Unlocked" and glows bright red (`#E63946`).
+- **Validation:** The "GUARDAR DATOS" button for Modal 6 only activates when all 4 seals are broken.
+
+## 4. THE FINAL CLIMAX (DASHBOARD INTEGRATION)
+- **JS Logic:** Update the State Manager created in Sprint 1. 
+- When Modal 6 is verified, check if `node1 && node2 && node3 && node4 && node5 && node6 === true`.
+- If true, trigger a GSAP (or CSS `keyframes`) animation on the Base Dashboard:
+  - The 6 Nodes pulse with energy.
+  - The hidden/locked `[ TRANSMITIR DOSSIER ]` button at the bottom of the screen slides up or scales in aggressively.
+  - The button should have a heavy hover effect (e.g., glitch effect or intense neon glow).
+
+## 5. EXPECTED DELIVERABLES
+- Updated `gang-apply.html` (adding Modal 5, Modal 6, and the final button structure).
+- Updated `css/gang.css` (Identity Card styling, Hold-to-Unlock animations, and final button animations).
+- Updated `js/gang.js` (Dynamic DOM injection for the Roster, pointer events for the Hold-to-Unlock logic, and the final state validation).

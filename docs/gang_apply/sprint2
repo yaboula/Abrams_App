@@ -1,0 +1,39 @@
+# SPRINT 2: MODAL 1 (OPERADOR OOC) & MODAL 2 (LORE IC)
+
+## 1. SPRINT OBJECTIVE
+Build the specific UI and logic for the first two specialized modals. 
+When the user clicks Node 1, the modal should load the "Operador OOC" interface. When they click Node 2, it should load the "Lore IC" interface. You can achieve this by dynamically injecting HTML templates into the generic modal container, or by toggling visibility of pre-built container divs.
+
+## 2. TECHNICAL REQUIREMENTS: MODAL 1 (OPERADOR OOC)
+**Goal:** Collect out-of-character data cleanly.
+- **Fields:** 1. Nombre/Alias OOC (Input text)
+  2. Edad OOC (Input number)
+  3. Discord Tag (Input text)
+  4. Experiencia en Roleplay (Textarea)
+- **Special Mechanic (Sanctions Toggle):**
+  - Create a custom, tactical Toggle/Switch: "Historial Limpio" vs "Sancionado".
+  - **JS Logic:** If the user toggles to "Sancionado", dynamically reveal a hidden textarea asking for "Justificación de la sanción".
+- **Validation:** Ensure all visible fields are filled before allowing the user to click "Guardar Datos" to verify Node 1.
+
+## 3. TECHNICAL REQUIREMENTS: MODAL 2 (IDENTIDAD & LORE IC)
+**Goal:** Define the gang's lore with a highly immersive experience.
+- **Fields:** Nombre de la Organización, Objetivos a corto/largo plazo, Vestimenta y Rasgos.
+- **Special Mechanic 1 (Holographic Type Selector):**
+  - DO NOT use a `<select>` dropdown for the Gang Type.
+  - Create a CSS Grid of "Holographic Cards" (Pandilla, Mafia, Cártel, MC, Red Criminal, Otro).
+  - **JS Logic:** Make them selectable. Only one can be active at a time. The active card glows with `--color-accent` (`#E63946`).
+- **Special Mechanic 2 (The Redacted Manifesto):**
+  - **The Challenge:** Standard `<textarea>` elements cannot contain `<span>` tags for coloring specific words.
+  - **The Solution:** Implement a rich-text field using a `contenteditable="true"` div OR a highlight overlay trick (a transparent textarea positioned perfectly over a div containing the styled text).
+  - **JS Logic:** As the user types their Gang Lore, scan the input in real-time for keywords: `mafia, sangre, drogas, armas, territorio, dinero, cártel, muerte`.
+  - When a keyword is detected, wrap it in a `<span class="keyword-glow">` so it instantly lights up in neon red (`var(--color-accent)`). This gives the illusion of a police algorithm scanning their text.
+
+## 4. DESIGN & UX
+- Keep using the Cybertech visual language (glassmorphism backgrounds, sharp edges, `Rajdhani` fonts for labels, `#a0a0b0` for muted text).
+- Input fields should have a transparent background with a subtle bottom border, transitioning to a glowing red border on `:focus`.
+- Update the "Simular Guardado" button to be a real "GUARDAR Y ENCRIPTAR" button. It should validate the current modal's data, close the modal, and mark the corresponding Node as verified in the main Dashboard.
+
+## 5. EXPECTED DELIVERABLES
+- Updated `gang-apply.html` (adding the templates or hidden divs for Modal 1 and Modal 2).
+- Updated `css/gang.css` (styles for holographic cards, custom inputs, custom toggle, and the `.keyword-glow` class).
+- Updated `js/gang.js` (logic to inject/show the right modal content, toggle logic, holographic card selection logic, and the real-time keyword scanner).

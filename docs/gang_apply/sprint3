@@ -1,0 +1,37 @@
+# SPRINT 3: MODAL 3 (LOGÍSTICA Y ECONOMÍA) & MODAL 4 (MAPA TÁCTICO)
+
+## 1. SPRINT OBJECTIVE
+Build the UI and advanced JavaScript logic for Modal 3 (Economy Sliders) and Modal 4 (Interactive Map). These modals require heavy JS manipulation for mathematical constraints and coordinate plotting.
+
+## 2. TECHNICAL REQUIREMENTS: MODAL 3 (LOGÍSTICA Y ECONOMÍA)
+**Goal:** Force players to specialize their criminal enterprise using a 100-point limit system.
+- **Fields:** 1. A "Points Available" glowing counter (Starts at 100).
+  2. 5 Custom Sliders (`<input type="range">` styled aggressively with Cybertech/Valorant aesthetics): Narcotráfico, Tráfico de Armas, Extorsión, Robos, Blanqueo de Capitales.
+  3. "Negocio Tapadera / Actividad Legal" (Textarea).
+- **Special Mechanic (The 100-Point Algorithm):**
+  - **JS Logic:** The sum of all 5 sliders CANNOT exceed 100.
+  - If a user tries to increase a slider but the total is already 100, the slider must be visually locked (or dynamically push another slider down to compensate).
+  - *Recommendation:* The easiest UX is to let the user slide freely, but if `Total > 100`, mathematically reduce the *other* sliders proportionally so the total always snaps back to exactly 100. Update the "Points Available" counter in real-time.
+- **Validation:** Total points allocated must be exactly 100 before the "GUARDAR DATOS" button activates.
+
+## 3. TECHNICAL REQUIREMENTS: MODAL 4 (MAPA TÁCTICO)
+**Goal:** Allow users to visually claim their territory on the Los Santos map.
+- **Fields:**
+  1. A large interactive map container using the background image `assets/map-bg.jpg` (assume this file exists, use a dark placeholder color fallback like `#1a1a24` if the image doesn't load).
+  2. "Nombre de la Zona Reclamada" (Input text).
+  3. "Coordenadas Tácticas" (Input text, `readonly`, styled like a terminal output).
+- **Special Mechanic (Interactive Map Pinning):**
+  - **JS Logic:** Add a click event listener to the map container.
+  - When the user clicks on the map, calculate the relative `X` and `Y` percentages of the click within the container.
+  - Inject or move a custom SVG Pin (a glowing red dot or crosshair with a pulsing animation using CSS `keyframes`) exactly to that `X` and `Y` position using `position: absolute`.
+  - Calculate fake GTA coordinates (e.g., mapping 0-100% to -4000 to +4000) and print them into the "Coordenadas Tácticas" input with a typewriter effect or just instantly (e.g., `[ LAT: 345.12 | LNG: -1204.88 ]`).
+
+## 4. DESIGN & UX
+- Continue using the established variables (`--color-bg`, `--color-panel`, `--color-accent`, etc.).
+- The sliders must not look like native browser ranges. Style the `::-webkit-slider-thumb` as a sharp, high-tech box that glows red, and the `::-webkit-slider-runnable-track` as a dark neon track.
+- The Map container should have a targeting reticle or grid overlay (`background-image: linear-gradient(...)`) to make it look like a tactical drone feed.
+
+## 5. EXPECTED DELIVERABLES
+- Updated `gang-apply.html` (adding Modal 3 and Modal 4 structures).
+- Updated `css/gang.css` (custom range slider CSS, map container styling, and pulsing pin animation).
+- Updated `js/gang.js` (the 100-point constraint algorithm and the map click/coordinate calculation logic).

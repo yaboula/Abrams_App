@@ -1,0 +1,39 @@
+# SPRINT 1: BASE DASHBOARD & MODAL ARCHITECTURE
+
+## 1. SPRINT OBJECTIVE
+Your goal for this sprint is to build the foundational UI and the JavaScript state-management logic for the "Modular Matrix". 
+**DO NOT build the specific content of the 6 specialized modals yet.** Focus entirely on the main Dashboard grid, the visual styling of the "Nodes", the overlay blur effect, and the logic to open/close generic modal windows.
+
+## 2. TECHNICAL REQUIREMENTS
+
+### HTML (`gang-apply.html`)
+- Create a full-screen layout (no scrolling if possible, or minimal scroll).
+- Add a subtle background (e.g., dark radial gradient or subtle grid pattern).
+- Create a CSS Grid container for the **6 Data Nodes**.
+- Each Node should be a clickable card (`div` or `<button>`) displaying:
+  1. A number or icon (e.g., `01`, `02`).
+  2. A Title (e.g., "OPERADOR OOC", "LORE IC", etc.).
+  3. A Status indicator (initially `[ ? PENDIENTE ]` in a muted color).
+- Create a hidden **Generic Modal Container** (`<dialog>` or absolute `div`) that covers the screen with a `backdrop-filter: blur(10px)`. It must contain a close button `[ X ]`.
+- Create a main footer/bottom section with the final `[ TRANSMITIR DOSSIER ]` button (initially disabled/locked).
+
+### CSS (`css/gang.css`)
+- Strictly use the Cybertech/Valorant variables provided in the Context file (`#0a0a0f`, `#E63946`, `Rajdhani`, `Inter`, etc.).
+- Implement **Glassmorphism**: The nodes should look like dark frosted glass (`rgba(15, 15, 20, 0.75)`) with very subtle red borders (`rgba(226, 57, 70, 0.15)`).
+- **Hover effects:** When hovering over a Node, it should have a smooth transition (glow effect, slight translation, or border color change to solid red).
+- Use `clip-path` for beveled corners on the Nodes and the final button to give it that tech/tactical feel.
+
+### JavaScript (`js/gang.js`)
+- Implement a State Manager (e.g., an object storing `{ node1: false, node2: false... }`).
+- Add event listeners to the 6 Nodes. When clicked:
+  1. Open the Generic Modal.
+  2. Dynamically change the Modal's Title to match the clicked Node.
+- Add event listener to close the modal.
+- Create a temporary/dummy "Simular Guardado" button inside the generic modal. When clicked:
+  1. Close the modal.
+  2. Change the specific Node's state to `true`.
+  3. Update the Node's UI visually (change text to `[ VERIFICADO ]`, change border/glow to a success state or bright red).
+  4. Run a check: If all 6 nodes are verified, unlock the `[ TRANSMITIR DOSSIER ]` button with a GSAP or CSS animation.
+
+## 3. EXPECTED DELIVERABLES FOR SPRINT 1
+Provide the initial HTML, CSS, and JS code blocks. Ensure the CSS Grid is responsive (e.g., 3 columns on desktop, 1-2 on mobile). I will review this foundation before we move on to Sprint 2 (building the specialized content for Modal 1 and 2).

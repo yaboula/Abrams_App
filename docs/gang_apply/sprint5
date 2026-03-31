@@ -1,0 +1,41 @@
+# SPRINT 5: DATA HARVESTING & BACKEND TRANSMISSION (FINAL)
+
+## 1. SPRINT OBJECTIVE
+The UI and interactive logic for all 6 Nodes are complete. The goal of this final sprint is to implement the "Data Harvesting" logic and the secure transmission protocol. When the user clicks the final `[ TRANSMITIR DOSSIER ]` button, the system must collect all data, format it into a clean JSON payload, and send it to the backend via the `fetch` API, while showing an epic loading/success sequence.
+
+## 2. TECHNICAL REQUIREMENTS: DATA HARVESTING
+**Goal:** Extract the values from every input across the 6 modals.
+- **JS Logic (`compileDossier` function):**
+  - Create a function that builds a structured JSON object.
+  - Group the data logically. Example structure:
+    ```json
+    {
+      "ooc": { "discord": "...", "age": 25, "experience": "...", "sanctions": "..." },
+      "ic": { "gangName": "...", "type": "Cartel", "lore": "..." },
+      "economy": { "drugs": 40, "weapons": 30, "extortion": 30, "front": "..." },
+      "territory": { "zoneName": "...", "coords": "[LAT: X | LNG: Y]" },
+      "roster": [ { "name": "...", "discord": "...", "rank": "Leader" }, ... ],
+      "diplomacy": { "stance": "...", "rulesAccepted": true }
+    }
+    ```
+  - Ensure the dynamic roster extracts all injected Node cards correctly.
+
+## 3. TECHNICAL REQUIREMENTS: THE TRANSMISSION SEQUENCE (FETCH API)
+**Goal:** Send the data to the Node.js backend (`/api/submit-gang`) securely.
+- **JS Logic:**
+  - Attach an asynchronous click event to the `[ TRANSMITIR DOSSIER ]` button.
+  - **State 1 (Encrypting):** Disable the button. Change its text to `[ ENCRIPTANDO Y TRANSMITIENDO... ]`. Add a CSS loading animation (e.g., a glitch effect or a scanning line over the button).
+  - Execute a `fetch()` POST request to `/api/submit-gang` with the JSON payload and `Content-Type: application/json`.
+  - Add a `try/catch` block for error handling.
+
+## 4. THE CLIMAX: SUCCESS / ERROR STATES
+- **State 2A (Success - 200 OK):**
+  - Trigger a massive GSAP animation. The entire Dashboard grid should fade out or collapse.
+  - Display a full-screen, center-aligned success message: `[ TRANSMISIÓN COMPLETADA. DOSSIER EN MANOS DEL SINDICATO ]` in glowing red.
+  - Optionally, redirect the user to a `success.html` page or the main Abrams RP homepage after 4 seconds.
+- **State 2B (Error - 400/500):**
+  - If the server fails (or network error), revert the button text to `[ TRANSMISIÓN INTERCEPTADA - REINTENTAR ]` and make it flash violently in red/warning colors.
+
+## 5. EXPECTED DELIVERABLES
+- Updated `js/gang.js` (adding the `compileDossier` function, the `fetch` API call, and the async transmission logic).
+- Updated `css/gang.css` (adding styles for the loading state, glitch effects, and the full-screen success overlay).
